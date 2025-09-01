@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio de Consultoría Especializada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Consultoría Especializada</h1>
+        <p class="subtitle">Soluciones integrales para impulsar tu organización</p>
+        <nav>
+            <ul>
+                <li><a href="#quienes">Quiénes somos</a></li>
+                <li><a href="#servicios">Servicios</a></li>
+                <li><a href="#acreditacion">Acreditación</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="quienes" class="quienes-section">
+            <h2>Quiénes somos</h2>
+            <div class="consultores-grid">
+                <div class="consultor-card">
+                    <img src="foto-sistemas.jpg" alt="Consultor de Sistemas" class="consultor-foto" />
+                    <div class="consultor-info">
+                        <p><strong>Juan David Veloza</strong></p>
+                        <p>Resumen profesional del consultor de Sistemas. Puedes copiar aquí el extracto de LinkedIn.</p>
+                        <a href="https://www.linkedin.com/in/usuario-sistemas" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                    </div>
+                </div>
+                <div class="consultor-card">
+                    <img src="Imagenes/Paula_Veloza.png" alt="Consultora Ambiental" class="consultor-foto" />
+                    <div class="consultor-info">
+                        <p><strong>Paula Rocio Veloza</strong></p>
+                        <p>Ingeniera Ambiental con Maestría en Geomática (en curso) y experiencia en proyectos ambientales, adaptación al cambio climático y caracterización de ecosistemas. Experto en Sistemas de Información Geográfica (GIS), con habilidades en cartografía, análisis de datos geoespaciales y manejo de software especializado. Conoce la evaluación de impacto ambiental, planes de manejo y restauración. Destaca por su trabajo en equipo y enfoque en resultados.</p>
+                        <a href="https://www.linkedin.com/in/paularvelozam-a3a33665/" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                    </div>
+                </div>
+                <div class="consultor-card">
+                    <img src="foto-civil.jpg" alt="Consultor Civil" class="consultor-foto" />
+                    <div class="consultor-info">
+                        <p><strong>Carlos Andrés Veloza</strong></p>
+                        <p>Resumen profesional del consultor civil. Puedes copiar aquí el extracto de LinkedIn.</p>
+                        <a href="https://www.linkedin.com/in/usuario-civil" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                    </div>
+                </div>
+                <div class="consultor-card">
+                    <img src="foto-mecanica.jpg" alt="Carlos Mauricio Veloza" class="consultor-foto" />
+                    <div class="consultor-info">
+                        <p><strong>Carlos Mauricio Veloza</strong></p>
+                        <p>Resumen profesional de Carlos Mauricio Veloza. Ingeniero Mecánico y consultor en procesos de acreditación educativa. Experiencia en diseño mecánico, mantenimiento industrial, eficiencia energética y acompañamiento en gestión y mejora continua para instituciones y programas académicos. Puedes copiar aquí el extracto de LinkedIn.</p>
+                        <a href="https://www.linkedin.com/in/usuario-mecanica" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="intro">
+            <h2>¿Por qué elegirnos?</h2>
+            <p>Somos un equipo multidisciplinario con amplia experiencia en consultoría para los sectores de ingeniería y educación superior. Nos enfocamos en brindar soluciones innovadoras, eficientes y personalizadas, adaptadas a las necesidades de cada cliente.</p>
+        </section>
+        <section id="servicios" class="services-grid">
+            <div class="service-card">
+                <h3>Ingeniería de Sistemas</h3>
+                <ul>
+                    <li>Transformación digital y automatización</li>
+                    <li>Desarrollo de software a medida</li>
+                    <li>Optimización de procesos TI</li>
+                </ul>
+                <button onclick="showContact('sistemas')">Quiero saber más</button>
+            </div>
+            <div class="service-card">
+                <h3>Ingeniería Ambiental</h3>
+                <ul>
+                    <li>Gestión ambiental y sostenibilidad</li>
+                    <li>Estudios de impacto ambiental</li>
+                    <li>Auditorías y cumplimiento normativo</li>
+                </ul>
+                <button onclick="showContact('ambiental')">Quiero saber más</button>
+            </div>
+            <div class="service-card">
+                <h3>Ingeniería Civil</h3>
+                <ul>
+                    <li>Diseño y supervisión de obras</li>
+                    <li>Gestión de proyectos de infraestructura</li>
+                    <li>Consultoría en urbanismo</li>
+                </ul>
+                <button onclick="showContact('civil')">Quiero saber más</button>
+            </div>
+            <div class="service-card">
+                <h3>Ingeniería Mecánica</h3>
+                <ul>
+                    <li>Diseño mecánico e innovación</li>
+                    <li>Mantenimiento industrial</li>
+                    <li>Eficiencia energética</li>
+                </ul>
+                <button onclick="showContact('mecanica')">Quiero saber más</button>
+            </div>
+        </section>
+        <section id="acreditacion" class="acreditacion-section">
+            <h2>Procesos de Acreditación en Educación Superior</h2>
+            <p>Te acompañamos en la preparación, gestión y mejora continua para la acreditación institucional y de programas académicos, asegurando el cumplimiento de estándares nacionales e internacionales.</p>
+            <button onclick="showContact('acreditacion')">Solicitar asesoría</button>
+        </section>
+        <section id="contacto" class="contact-section">
+            <h2>¿Listo para transformar tu organización?</h2>
+            <p>Contáctanos y recibe una asesoría personalizada según tus necesidades.</p>
+            <button onclick="showContact('general')">Contactar ahora</button>
+        </section>
+    </main>
+    <div id="contact-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Solicitar información</h3>
+            <form id="contact-form">
+                <input type="hidden" id="service-type" name="service-type">
+                <label for="name">Nombre:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">Correo electrónico:</label>
+                <input type="email" id="email" name="email" required>
+                <label for="message">Mensaje:</label>
+                <textarea id="message" name="message" required></textarea>
+                <button type="submit">Enviar</button>
+            </form>
+            <div id="form-response" class="hidden"></div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Consultoría Especializada. Todos los derechos reservados.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
