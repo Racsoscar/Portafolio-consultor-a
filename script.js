@@ -11,13 +11,41 @@ function closeModal() {
 
 document.getElementById('contact-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    // Simulación de envío
-    document.getElementById('form-response').textContent = '¡Gracias por tu interés! Nos pondremos en contacto pronto.';
-    document.getElementById('form-response').classList.remove('hidden');
-    setTimeout(closeModal, 2000);
+    const formData = new FormData(this);
+
+    fetch('/contact', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('form-response').textContent = data.message;
+        document.getElementById('form-response').classList.remove('hidden');
+        closeModal();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('form-response').textContent = 'Error al enviar el mensaje. Inténtalo de nuevo.';
+        document.getElementById('form-response').classList.remove('hidden');
+    });
 });
 
 // Cerrar modal al presionar Escape
 window.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeModal();
+});
+
+// Scroll to top
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Show/hide scroll to top button
+window.addEventListener('scroll', function() {
+    const button = document.getElementById('scrollToTop');
+    if (window.scrollY > 300) {
+        button.style.display = 'block';
+    } else {
+        button.style.display = 'none';
+    }
 });

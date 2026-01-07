@@ -71,18 +71,54 @@
     color: #ffcc00;
 }
 
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     margin: 0;
-    background: #f4f6f8;
+    background: linear-gradient(135deg, #f4f6f8 0%, #e8f4f8 100%);
     color: #222;
+    animation: fadeInUp 1s ease-out;
 }
 header {
-    background: linear-gradient(90deg, #003366 60%, #00509e 100%);
+    background: linear-gradient(135deg, rgba(0,51,102,0.8) 0%, rgba(0,80,158,0.8) 50%, rgba(0,119,181,0.8) 100%), url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
     color: #fff;
-    padding: 2.5rem 0 1.5rem 0;
+    padding: 3rem 0 2rem 0;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+}
+header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.2);
+    z-index: 1;
+}
+header h1, .subtitle, nav {
+    position: relative;
+    z-index: 2;
 }
 header h1 {
     margin: 0 0 0.3rem 0;
@@ -128,11 +164,15 @@ nav a:hover::after {
 nav a:hover {
     color: #ffcc00;
 }
-main {
-    max-width: 1100px;
-    margin: 2.5rem auto 4rem auto;
-    padding: 0 1.5rem;
+main section {
+    animation: fadeInUp 0.8s ease-out;
+    animation-fill-mode: both;
 }
+main section:nth-child(1) { animation-delay: 0.1s; }
+main section:nth-child(2) { animation-delay: 0.3s; }
+main section:nth-child(3) { animation-delay: 0.5s; }
+main section:nth-child(4) { animation-delay: 0.7s; }
+main section:nth-child(5) { animation-delay: 0.9s; }
 .intro {
     background: #fff;
     border-radius: 12px;
@@ -159,12 +199,34 @@ main {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    transition: box-shadow 0.2s, transform 0.2s;
+    transition: all 0.3s ease;
     border-top: 4px solid #ffcc00;
+    position: relative;
+    overflow: hidden;
+}
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 4px;
+    background: linear-gradient(90deg, transparent, #ffcc00, transparent);
+    transition: left 0.5s;
+}
+.service-card:hover::before {
+    left: 100%;
 }
 .service-card:hover {
-    box-shadow: 0 6px 24px rgba(0,51,102,0.13);
-    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 32px rgba(0,51,102,0.15);
+    transform: translateY(-8px) scale(1.03);
+}
+.service-icon {
+    font-size: 2.5rem;
+    color: #003366;
+    margin-bottom: 1rem;
+    transition: color 0.3s, transform 0.3s;
+}
+.service-card:hover .service-icon {
+    color: #ffcc00;
+    transform: scale(1.1);
 }
 .service-card h3 {
     color: #003366;
@@ -182,22 +244,35 @@ main {
     margin-bottom: 0.4rem;
 }
 button {
-    background: linear-gradient(90deg, #003366 60%, #00509e 100%);
+    background: linear-gradient(90deg, #003366 0%, #00509e 100%);
     color: #fff;
     border: none;
-    border-radius: 5px;
-    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    padding: 0.8rem 1.8rem;
     font-size: 1rem;
     cursor: pointer;
     margin-top: 0.5rem;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0,51,102,0.07);
-    transition: background 0.2s, transform 0.2s;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,51,102,0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+button::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+button:hover::before {
+    left: 100%;
 }
 button:hover {
-    background: #ffcc00;
+    background: linear-gradient(90deg, #ffcc00 0%, #ffb300 100%);
     color: #003366;
-    transform: scale(1.04);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(255,204,0,0.3);
 }
 .acreditacion-section {
     background: #eaf2fb;
@@ -221,15 +296,14 @@ button:hover {
     color: #003366;
 }
 footer {
-    background: #003366;
+    background: linear-gradient(90deg, #003366 0%, #00509e 100%);
     color: #fff;
     text-align: center;
-    padding: 1rem 0;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
+    padding: 1.5rem 0;
+    margin-top: 3rem;
     font-size: 1rem;
     letter-spacing: 0.5px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
 }
 .modal {
     position: fixed;
@@ -245,12 +319,14 @@ footer {
 }
 .modal-content {
     background: #fff;
-    padding: 2rem;
-    border-radius: 10px;
+    padding: 2.5rem;
+    border-radius: 15px;
     width: 100%;
-    max-width: 400px;
+    max-width: 450px;
     position: relative;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    animation: fadeInUp 0.5s ease-out;
+    border-top: 4px solid #ffcc00;
 }
 .close {
     position: absolute;
@@ -289,4 +365,28 @@ input, textarea {
     main {
         padding: 0 0.3rem;
     }
+}
+
+/* Scroll to top button */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: linear-gradient(90deg, #003366, #00509e);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    display: none;
+    z-index: 1000;
+}
+.scroll-to-top:hover {
+    background: #ffcc00;
+    color: #003366;
+    transform: scale(1.1);
 }

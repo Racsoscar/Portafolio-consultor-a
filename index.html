@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portafolio de Consultoría Especializada: Soluciones integrales en ingeniería y educación superior.">
     <title>Portafolio de Consultoría Especializada</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-</head>
+
 <body>
     <header>
         <h1>Consultoría Especializada</h1>
@@ -24,7 +26,7 @@
             <h2>Quiénes somos</h2>
             <div class="consultores-grid">
                 <div class="consultor-card">
-                    <img src="foto-sistemas.jpg" alt="Consultor de Sistemas" class="consultor-foto" />
+                    <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Foto de Juan David Veloza, Consultor de Sistemas" class="consultor-foto" />
                     <div class="consultor-info">
                         <p><strong>Juan David Veloza</strong></p>
                         <p>Resumen profesional del consultor de Sistemas. Puedes copiar aquí el extracto de LinkedIn.</p>
@@ -40,7 +42,7 @@
                     </div>
                 </div>
                 <div class="consultor-card">
-                    <img src="foto-civil.jpg" alt="Consultor Civil" class="consultor-foto" />
+                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Foto de Carlos Andrés Veloza, Consultor Civil" class="consultor-foto" />
                     <div class="consultor-info">
                         <p><strong>Carlos Andrés Veloza</strong></p>
                         <p>Resumen profesional del consultor civil. Puedes copiar aquí el extracto de LinkedIn.</p>
@@ -48,10 +50,10 @@
                     </div>
                 </div>
                 <div class="consultor-card">
-                    <img src="foto-mecanica.jpg" alt="Carlos Mauricio Veloza" class="consultor-foto" />
+                    <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Foto de Carlos Mauricio Veloza, Ingeniero Mecánico" class="consultor-foto" />
                     <div class="consultor-info">
                         <p><strong>Carlos Mauricio Veloza</strong></p>
-                        <p>Resumen profesional de Carlos Mauricio Veloza. Ingeniero Mecánico y consultor en procesos de acreditación educativa. Experiencia en diseño mecánico, mantenimiento industrial, eficiencia energética y acompañamiento en gestión y mejora continua para instituciones y programas académicos. Puedes copiar aquí el extracto de LinkedIn.</p>
+                        <p>Resumen profesional de Carlos Mauricio Veloza. Ingeniero Mecánico y consultor en procesos de acreditación educativa. Experiencia en diseño mecánico, mantenimiento industrial, eficiencia energética y acompañamiento en gestión y mejora continua para instituciones y programas académicos.</p>
                         <a href="https://www.linkedin.com/in/usuario-mecanica" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
                     </div>
                 </div>
@@ -63,6 +65,7 @@
         </section>
         <section id="servicios" class="services-grid">
             <div class="service-card">
+                <i class="fas fa-cogs service-icon"></i>
                 <h3>Ingeniería de Sistemas</h3>
                 <ul>
                     <li>Transformación digital y automatización</li>
@@ -72,6 +75,7 @@
                 <button onclick="showContact('sistemas')">Quiero saber más</button>
             </div>
             <div class="service-card">
+                <i class="fas fa-leaf service-icon"></i>
                 <h3>Ingeniería Ambiental</h3>
                 <ul>
                     <li>Gestión ambiental y sostenibilidad</li>
@@ -81,6 +85,7 @@
                 <button onclick="showContact('ambiental')">Quiero saber más</button>
             </div>
             <div class="service-card">
+                <i class="fas fa-building service-icon"></i>
                 <h3>Ingeniería Civil</h3>
                 <ul>
                     <li>Diseño y supervisión de obras</li>
@@ -90,6 +95,7 @@
                 <button onclick="showContact('civil')">Quiero saber más</button>
             </div>
             <div class="service-card">
+                <i class="fas fa-wrench service-icon"></i>
                 <h3>Ingeniería Mecánica</h3>
                 <ul>
                     <li>Diseño mecánico e innovación</li>
@@ -114,7 +120,7 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h3>Solicitar información</h3>
-            <form id="contact-form">
+            <form id="contact-form" action="/contact" method="POST">
                 <input type="hidden" id="service-type" name="service-type">
                 <label for="name">Nombre:</label>
                 <input type="text" id="name" name="name" required>
@@ -130,6 +136,7 @@
     <footer>
         <p>&copy; 2025 Consultoría Especializada. Todos los derechos reservados.</p>
     </footer>
+    <button id="scrollToTop" class="scroll-to-top" onclick="scrollToTop()">↑</button>
     <script src="script.js"></script>
 </body>
 </html>
