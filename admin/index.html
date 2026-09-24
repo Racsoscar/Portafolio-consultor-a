@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>CRM · Consultoría Especializada</title>
+    <link rel="stylesheet" href="/admin/assets/admin.css">
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <strong>CRM</strong>
+            <span class="topbar-sub">Consultoría Especializada</span>
+        </div>
+        <nav class="tabs" role="tablist">
+            <button class="tab" role="tab" data-view="tablero" aria-selected="true">Tablero</button>
+            <button class="tab" role="tab" data-view="contactos" aria-selected="false">Contactos</button>
+        </nav>
+        <div class="topbar-actions">
+            <button id="recargar" class="btn btn-ghost" title="Actualizar datos">Actualizar</button>
+            <button id="salir" class="btn btn-ghost">Salir</button>
+        </div>
+    </header>
+
+    <main>
+        <p id="estado-carga" class="muted">Cargando…</p>
+
+        <section id="view-tablero" class="view" hidden>
+            <div class="tiles" id="tiles"></div>
+
+            <div class="grid">
+                <article class="card card-wide">
+                    <h2>Seguimientos pendientes</h2>
+                    <p class="card-sub">Vencidos y de los próximos 7 días</p>
+                    <ul id="seguimientos" class="seguimientos"></ul>
+                </article>
+
+                <article class="card">
+                    <h2>Contactos por mes</h2>
+                    <p class="card-sub">Últimos 6 meses</p>
+                    <div id="chart-meses" class="columns"></div>
+                </article>
+
+                <article class="card">
+                    <h2>Contactos por servicio</h2>
+                    <p class="card-sub">Todos los contactos</p>
+                    <div id="chart-servicios" class="bars"></div>
+                </article>
+
+                <article class="card">
+                    <h2>Contactos por etapa</h2>
+                    <p class="card-sub">Estado actual del embudo</p>
+                    <div id="chart-estados" class="bars"></div>
+                </article>
+            </div>
+        </section>
+
+        <section id="view-contactos" class="view" hidden>
+            <div class="filtros">
+                <input type="search" id="filtro-texto" placeholder="Buscar por nombre, correo o mensaje" aria-label="Buscar">
+                <select id="filtro-estado" aria-label="Filtrar por estado"><option value="">Todos los estados</option></select>
+                <select id="filtro-servicio" aria-label="Filtrar por servicio"><option value="">Todos los servicios</option></select>
+            </div>
+            <div class="card table-card">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Nombre</th>
+                            <th>Servicio</th>
+                            <th>Estado</th>
+                            <th>Seguimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-leads"></tbody>
+                </table>
+                <p id="tabla-vacia" class="empty" hidden>No hay contactos que coincidan.</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="drawer-fondo" class="drawer-fondo" hidden></div>
+    <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-titulo" hidden>
+        <button type="button" id="drawer-cerrar" class="drawer-cerrar" aria-label="Cerrar">&times;</button>
+        <div id="drawer-contenido"></div>
+    </aside>
+
+    <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="/admin/assets/admin.js"></script>
+</body>
+</html>

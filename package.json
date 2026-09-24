@@ -1,18 +1,25 @@
 {
   "name": "portafolio-consultor-a",
   "version": "1.0.0",
-  "description": "Portafolio de Consultoría Especializada con formulario de contacto conectado a Google Forms",
+  "description": "Portafolio de Consultoría Especializada con CRM de contactos sobre Google Sheets",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node --env-file-if-exists=.env server.js",
+    "verificar": "node --env-file-if-exists=.env scripts/verificar.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.9"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "@googleapis/sheets": "^18.0.0",
+    "express": "^4.21.2",
+    "nodemailer": "^10.0.10"
   },
-  "keywords": ["portafolio", "consultoria", "web"],
+  "keywords": [
+    "portafolio",
+    "consultoria",
+    "web"
+  ],
   "author": "Racsoscar",
   "license": "ISC"
 }

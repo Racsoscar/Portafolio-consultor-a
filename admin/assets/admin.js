@@ -1,0 +1,423 @@
+const $ = (selector, root = document) => root.querySelector(selector);
+
+// Crea elementos del DOM. El texto siempre entra como texto, nunca como HTML.
+function h(tag, attrs = {}, ...children) {
+    const el = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs)) {
+        if (value == null || value === false) continue;
+        if (key === 'class') el.className = value;
+        else if (key === 'style') el.style.cssText = value;
+        else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
+        else el.setAttribute(key, value === true ? '' : value);
+    }
+    for (const child of children.flat()) {
+        if (child == null || child === false) continue;
+        el.append(child instanceof Node ? child : String(child));
+    }
+    return el;
+}
+
+let meta = { servicios: {}, estados: {} };
+let leads = [];
+let leadAbierto = null;
+
+// ---------- Utilidades ----------
+
+async function api(url, options = {}) {
+    const res = await fetch(url, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...options.headers }
+    });
+    if (res.status === 401) {
+        location.href = '/admin/login' + location.hash;
+        throw new Error('Sesión expirada');
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || 'Error inesperado');
+    return data;
+}
+
+let toastTimer;
+function toast(texto, esError = false) {
+    const el = $('#toast');
+    el.textContent = texto;
+    el.classList.toggle('toast-error', esError);
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 3000);
+}
+
+const pad = n => String(n).padStart(2, '0');
+const fechaLocalISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hoyISO = () => fechaLocalISO(new Date());
+const claveMes = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+
+function sumarDias(iso, dias) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return fechaLocalISO(new Date(y, m - 1, d + dias));
+}
+
+const fmtDia = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
+const fmtDiaHora = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+const fmtMes = new Intl.DateTimeFormat('es-CO', { month: 'short' });
+const fmtMesLargo = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' });
+
+// 'YYYY-MM-DD' se interpreta como fecha local (no UTC)
+function fechaDeDia(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
+
+const nombreServicio = clave => meta.servicios[clave] || clave || 'Sin servicio';
+const nombreEstado = clave => meta.estados[clave] || clave;
+const estaAbierto = lead => lead.estado !== 'ganado' && lead.estado !== 'perdido';
+
+function badgeEstado(estado) {
+    return h('span', { class: `badge badge-${estado}` }, nombreEstado(estado));
+}
+
+function badgeSeguimiento(lead) {
+    if (!lead.proximoSeguimiento || !estaAbierto(lead)) return h('span', { class: 'fecha-badge' }, '—');
+    const hoy = hoyISO();
+    const fecha = lead.proximoSeguimiento;
+    if (fecha < hoy) return h('span', { class: 'fecha-badge fecha-vencida' }, `Vencido · ${fmtDia.format(fechaDeDia(fecha))}`);
+    if (fecha === hoy) return h('span', { class: 'fecha-badge fecha-hoy' }, 'Hoy');
+    return h('span', { class: 'fecha-badge' }, fmtDia.format(fechaDeDia(fecha)));
+}
+
+// ---------- Tooltip de las gráficas ----------
+
+const tooltip = $('#tooltip');
+
+function conTooltip(el, texto) {
+    el.tabIndex = 0;
+    el.setAttribute('aria-label', texto);
+    const mostrar = (x, y) => {
+        tooltip.textContent = texto;
+        tooltip.hidden = false;
+        const { width, height } = tooltip.getBoundingClientRect();
+        tooltip.style.left = `${Math.min(x + 12, window.innerWidth - width - 8)}px`;
+        tooltip.style.top = `${Math.max(y - height - 12, 8)}px`;
+    };
+    el.addEventListener('mousemove', e => mostrar(e.clientX, e.clientY));
+    el.addEventListener('focus', () => {
+        const r = el.getBoundingClientRect();
+        mostrar(r.left + r.width / 2, r.top);
+    });
+    el.addEventListener('mouseleave', () => { tooltip.hidden = true; });
+    el.addEventListener('blur', () => { tooltip.hidden = true; });
+    return el;
+}
+
+function barras(contenedor, items, total) {
+    contenedor.replaceChildren();
+    const max = Math.max(...items.map(i => i.valor), 1);
+    if (!total) {
+        contenedor.append(h('p', { class: 'empty' }, 'Aún no hay contactos.'));
+        return;
+    }
+    for (const item of items) {
+        const porcentaje = Math.round((item.valor / total) * 100);
+        contenedor.append(conTooltip(
+            h('div', { class: 'bar-row' },
+                h('span', { class: 'bar-label' }, item.etiqueta),
+                h('span', { class: 'bar-track' },
+                    h('span', { class: 'bar', style: `width: ${(item.valor / max) * 85}%` }),
+                    h('span', { class: 'bar-value' }, item.valor))),
+            `${item.etiqueta}: ${item.valor} (${porcentaje}%)`
+        ));
+    }
+}
+
+function columnasPorMes(contenedor) {
+    const ahora = new Date();
+    const meses = [];
+    for (let i = 5; i >= 0; i--) {
+        const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+        meses.push({ clave: claveMes(fecha), fecha, valor: 0 });
+    }
+    for (const lead of leads) {
+        const mes = meses.find(m => m.clave === claveMes(new Date(lead.creado)));
+        if (mes) mes.valor++;
+    }
+
+    const max = Math.max(...meses.map(m => m.valor), 1);
+    contenedor.replaceChildren(...meses.map(m => conTooltip(
+        h('div', { class: 'col' },
+            h('span', { class: 'col-value' }, m.valor),
+            h('span', { class: 'col-bar', style: `height: ${(m.valor / max) * 80}%` })),
+        `${fmtMesLargo.format(m.fecha)}: ${m.valor} contacto${m.valor === 1 ? '' : 's'}`
+    )));
+
+    const etiquetas = h('div', { class: 'col-labels', 'aria-hidden': 'true' },
+        meses.map(m => h('span', {}, fmtMes.format(m.fecha).replace('.', ''))));
+    contenedor.nextElementSibling?.classList.contains('col-labels')
+        ? contenedor.nextElementSibling.replaceWith(etiquetas)
+        : contenedor.after(etiquetas);
+}
+
+// ---------- Tablero ----------
+
+function tile(etiqueta, valor, detalle) {
+    return h('div', { class: 'tile' },
+        h('div', { class: 'tile-label' }, etiqueta),
+        h('div', { class: 'tile-value' }, valor),
+        h('div', { class: 'tile-detail' }, detalle));
+}
+
+function renderTablero() {
+    const ahora = new Date();
+    const mesActual = claveMes(ahora);
+    const mesAnterior = claveMes(new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1));
+    const delMes = leads.filter(l => claveMes(new Date(l.creado)) === mesActual).length;
+    const delMesAnterior = leads.filter(l => claveMes(new Date(l.creado)) === mesAnterior).length;
+    const diferencia = delMes - delMesAnterior;
+
+    const ganados = leads.filter(l => l.estado === 'ganado').length;
+    const cerrados = ganados + leads.filter(l => l.estado === 'perdido').length;
+    const sinAtender = leads.filter(l => l.estado === 'nuevo').length;
+
+    const hoy = hoyISO();
+    const vencidos = leads.filter(l => estaAbierto(l) && l.proximoSeguimiento && l.proximoSeguimiento < hoy).length;
+
+    const deltaTexto = diferencia === 0
+        ? 'Igual que el mes anterior'
+        : h('span', { class: diferencia > 0 ? 'delta-up' : 'delta-down' },
+            `${diferencia > 0 ? '▲ +' : '▼ '}${diferencia} vs. mes anterior`);
+
+    $('#tiles').replaceChildren(
+        tile('Contactos totales', leads.length, `${leads.filter(estaAbierto).length} en curso`),
+        tile('Contactos este mes', delMes, deltaTexto),
+        tile('Sin atender', sinAtender, 'En estado "Nuevo"'),
+        tile('Tasa de conversión', cerrados ? `${Math.round((ganados / cerrados) * 100)}%` : '—',
+            cerrados ? `${ganados} ganados de ${cerrados} cerrados` : 'Aún no hay contactos cerrados'),
+        tile('Seguimientos vencidos', vencidos, vencidos ? h('span', { class: 'delta-down' }, 'Requieren atención') : 'Todo al día')
+    );
+
+    // Seguimientos: vencidos y próximos 7 días
+    const limite = sumarDias(hoy, 7);
+    const pendientes = leads
+        .filter(l => estaAbierto(l) && l.proximoSeguimiento && l.proximoSeguimiento <= limite)
+        .sort((a, b) => a.proximoSeguimiento.localeCompare(b.proximoSeguimiento));
+    $('#seguimientos').replaceChildren(...(pendientes.length
+        ? pendientes.map(lead => h('li', {},
+            h('button', { class: 'seguimiento', onclick: () => abrirLead(lead.id) },
+                h('span', {},
+                    h('span', { class: 'seguimiento-nombre' }, lead.nombre), ' ',
+                    h('span', { class: 'seguimiento-servicio' }, `· ${nombreServicio(lead.servicio)} · ${nombreEstado(lead.estado)}`)),
+                badgeSeguimiento(lead))))
+        : [h('li', { class: 'empty' }, 'No hay seguimientos pendientes esta semana.')]));
+
+    columnasPorMes($('#chart-meses'));
+
+    barras($('#chart-servicios'),
+        Object.entries(meta.servicios)
+            .map(([clave, etiqueta]) => ({ etiqueta, valor: leads.filter(l => l.servicio === clave).length }))
+            .sort((a, b) => b.valor - a.valor),
+        leads.length);
+
+    barras($('#chart-estados'),
+        Object.entries(meta.estados)
+            .map(([clave, etiqueta]) => ({ etiqueta, valor: leads.filter(l => l.estado === clave).length })),
+        leads.length);
+}
+
+// ---------- Lista de contactos ----------
+
+function renderTabla() {
+    const texto = $('#filtro-texto').value.trim().toLowerCase();
+    const estado = $('#filtro-estado').value;
+    const servicio = $('#filtro-servicio').value;
+
+    const filtrados = leads.filter(l =>
+        (!estado || l.estado === estado) &&
+        (!servicio || l.servicio === servicio) &&
+        (!texto || `${l.nombre} ${l.email} ${l.mensaje}`.toLowerCase().includes(texto)));
+
+    $('#tabla-leads').replaceChildren(...filtrados.map(lead => {
+        const abrir = () => abrirLead(lead.id);
+        return h('tr', { tabindex: 0, onclick: abrir, onkeydown: e => { if (e.key === 'Enter') abrir(); } },
+            h('td', { class: 'td-fecha' }, fmtDia.format(new Date(lead.creado))),
+            h('td', {}, lead.nombre, h('span', { class: 'td-email' }, lead.email)),
+            h('td', {}, nombreServicio(lead.servicio)),
+            h('td', {}, badgeEstado(lead.estado)),
+            h('td', {}, badgeSeguimiento(lead)));
+    }));
+    $('#tabla-vacia').hidden = filtrados.length > 0;
+}
+
+// ---------- Ficha del contacto ----------
+
+function mostrarDrawer(visible) {
+    $('#drawer').hidden = !visible;
+    $('#drawer-fondo').hidden = !visible;
+}
+
+function cerrarLead() {
+    leadAbierto = null;
+    mostrarDrawer(false);
+    history.replaceState(null, '', location.pathname);
+}
+
+async function abrirLead(id) {
+    leadAbierto = id;
+    history.replaceState(null, '', `#lead=${id}`);
+    const contenido = $('#drawer-contenido');
+    contenido.replaceChildren(h('p', { class: 'muted' }, 'Cargando…'));
+    mostrarDrawer(true);
+    $('#drawer-cerrar').focus();
+
+    let lead;
+    try {
+        lead = await api(`/api/leads/${encodeURIComponent(id)}`);
+    } catch (error) {
+        contenido.replaceChildren(h('p', { class: 'form-error' }, error.message));
+        return;
+    }
+    if (leadAbierto !== id) return;
+    renderFicha(lead);
+}
+
+function renderFicha(lead) {
+    const selectEstado = h('select', { id: 'ficha-estado' },
+        Object.entries(meta.estados).map(([clave, etiqueta]) =>
+            h('option', { value: clave, selected: clave === lead.estado }, etiqueta)));
+    const inputFecha = h('input', { type: 'date', id: 'ficha-seguimiento', value: lead.proximoSeguimiento || '' });
+
+    const formEstado = h('form', { class: 'ficha-form', onsubmit: async e => {
+        e.preventDefault();
+        const boton = formEstado.querySelector('button');
+        boton.disabled = true;
+        try {
+            const actualizado = await api(`/api/leads/${encodeURIComponent(lead.id)}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ estado: selectEstado.value, proximoSeguimiento: inputFecha.value })
+            });
+            Object.assign(leads.find(l => l.id === lead.id) || {}, actualizado);
+            renderTodo();
+            renderFicha({ ...actualizado, notas: lead.notas });
+            toast('Cambios guardados');
+        } catch (error) {
+            toast(error.message, true);
+        } finally {
+            boton.disabled = false;
+        }
+    } },
+        h('div', {}, h('label', { for: 'ficha-estado' }, 'Estado'), selectEstado),
+        h('div', {}, h('label', { for: 'ficha-seguimiento' }, 'Próximo seguimiento'), inputFecha),
+        h('button', { type: 'submit', class: 'btn btn-primary' }, 'Guardar cambios'));
+
+    const textoNota = h('textarea', { id: 'nota-texto', rows: 3, required: true, maxlength: 5000, placeholder: 'Ej.: Llamé, pidió propuesta para el lunes.' });
+    const listaNotas = h('ul', { class: 'notas' });
+    const pintarNotas = notas => listaNotas.replaceChildren(...(notas.length
+        ? notas.map(n => h('li', {},
+            h('div', { class: 'nota-fecha' }, fmtDiaHora.format(new Date(n.fecha))),
+            h('p', { class: 'nota-texto' }, n.texto)))
+        : [h('li', { class: 'empty', style: 'border: none' }, 'Sin notas todavía.')]));
+    pintarNotas(lead.notas);
+
+    const formNota = h('form', { class: 'nota-form', onsubmit: async e => {
+        e.preventDefault();
+        const boton = formNota.querySelector('button');
+        boton.disabled = true;
+        try {
+            const nota = await api(`/api/leads/${encodeURIComponent(lead.id)}/notas`, {
+                method: 'POST',
+                body: JSON.stringify({ texto: textoNota.value })
+            });
+            lead.notas.unshift(nota);
+            pintarNotas(lead.notas);
+            textoNota.value = '';
+            toast('Nota agregada');
+        } catch (error) {
+            toast(error.message, true);
+        } finally {
+            boton.disabled = false;
+        }
+    } },
+        h('label', { for: 'nota-texto' }, 'Nueva nota'),
+        textoNota,
+        h('button', { type: 'submit', class: 'btn btn-primary' }, 'Agregar nota'));
+
+    $('#drawer-contenido').replaceChildren(
+        h('h2', { id: 'drawer-titulo' }, lead.nombre),
+        h('dl', { class: 'ficha-datos' },
+            h('dt', {}, 'Correo'), h('dd', {}, h('a', { href: `mailto:${lead.email}` }, lead.email)),
+            h('dt', {}, 'Servicio'), h('dd', {}, nombreServicio(lead.servicio)),
+            h('dt', {}, 'Recibido'), h('dd', {}, fmtDiaHora.format(new Date(lead.creado))),
+            h('dt', {}, 'Estado'), h('dd', {}, badgeEstado(lead.estado))),
+        h('h3', {}, 'Mensaje'),
+        h('p', { class: 'mensaje' }, lead.mensaje),
+        h('h3', {}, 'Seguimiento'),
+        formEstado,
+        h('h3', {}, 'Notas'),
+        formNota,
+        listaNotas);
+}
+
+// ---------- Navegación y carga ----------
+
+function mostrarVista(vista) {
+    for (const tab of document.querySelectorAll('.tab')) {
+        tab.setAttribute('aria-selected', String(tab.dataset.view === vista));
+    }
+    $('#view-tablero').hidden = vista !== 'tablero';
+    $('#view-contactos').hidden = vista !== 'contactos';
+}
+
+function renderTodo() {
+    renderTablero();
+    renderTabla();
+}
+
+async function cargar() {
+    const boton = $('#recargar');
+    boton.disabled = true;
+    try {
+        leads = await api('/api/leads');
+        renderTodo();
+        $('#estado-carga').hidden = true;
+    } catch (error) {
+        $('#estado-carga').textContent = `No se pudieron cargar los contactos: ${error.message}`;
+        $('#estado-carga').hidden = false;
+    } finally {
+        boton.disabled = false;
+    }
+}
+
+async function iniciar() {
+    try {
+        meta = await api('/api/meta');
+    } catch (error) {
+        $('#estado-carga').textContent = `No se pudo iniciar el CRM: ${error.message}`;
+        return;
+    }
+
+    for (const [clave, etiqueta] of Object.entries(meta.estados)) $('#filtro-estado').append(h('option', { value: clave }, etiqueta));
+    for (const [clave, etiqueta] of Object.entries(meta.servicios)) $('#filtro-servicio').append(h('option', { value: clave }, etiqueta));
+
+    mostrarVista('tablero');
+    await cargar();
+
+    const match = location.hash.match(/^#lead=(.+)$/);
+    if (match) abrirLead(decodeURIComponent(match[1]));
+}
+
+for (const tab of document.querySelectorAll('.tab')) {
+    tab.addEventListener('click', () => mostrarVista(tab.dataset.view));
+}
+for (const id of ['#filtro-texto', '#filtro-estado', '#filtro-servicio']) {
+    $(id).addEventListener('input', renderTabla);
+}
+$('#recargar').addEventListener('click', cargar);
+$('#salir').addEventListener('click', async () => {
+    await fetch('/admin/logout', { method: 'POST' });
+    location.href = '/admin/login';
+});
+$('#drawer-cerrar').addEventListener('click', cerrarLead);
+$('#drawer-fondo').addEventListener('click', cerrarLead);
+window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !$('#drawer').hidden) cerrarLead();
+});
+
+iniciar();

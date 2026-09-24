@@ -1,61 +1,151 @@
 const express = require('express');
 const path = require('path');
+const { SERVICIOS, ESTADOS } = require('./lib/constants');
+const { createStore } = require('./lib/store');
+const auth = require('./lib/auth');
+const { avisarNuevoLead, avisosActivos } = require('./lib/notify');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// URL del formulario de Google Forms
-const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSc-WoreKuse_7O8JFicySllBOSxBtk1P5ha35SN8ZJ8uBKtug/formResponse';
-
-// Nombres descriptivos de cada tipo de servicio
-const SERVICE_NAMES = {
-    sistemas: 'Ingeniería de Sistemas',
-    ambiental: 'Ingeniería Ambiental',
-    civil: 'Ingeniería Civil',
-    mecanica: 'Ingeniería Mecánica',
-    acreditacion: 'Procesos de Acreditación en Educación Superior',
-    general: 'Consulta General'
-};
+const store = createStore();
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+// Envuelve rutas async para que los errores lleguen al manejador de errores
+const asyncRoute = fn => (req, res, next) => fn(req, res, next).catch(next);
 
 // Middleware: solo se publica la carpeta public/, nunca el código del servidor ni .env
 app.use(express.urlencoded({ extended: false, limit: '20kb' }));
+app.use(express.json({ limit: '20kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ruta para manejar el formulario de contacto
-app.post('/contact', async (req, res) => {
-    const name = String(req.body.name || '').trim();
-    const email = String(req.body.email || '').trim();
-    const message = String(req.body.message || '').trim();
-    const serviceName = SERVICE_NAMES[req.body['service-type']] || 'No especificado';
+// ---------- Formulario de contacto de la página ----------
 
-    if (!name || !message || !EMAIL_REGEX.test(email) || name.length > 200 || message.length > 5000) {
+app.post('/contact', asyncRoute(async (req, res) => {
+    const nombre = String(req.body.name || '').trim();
+    const email = String(req.body.email || '').trim();
+    const mensaje = String(req.body.message || '').trim();
+    const servicio = SERVICIOS[req.body['service-type']] ? req.body['service-type'] : 'general';
+
+    if (!nombre || !mensaje || !EMAIL_REGEX.test(email) || nombre.length > 200 || email.length > 200 || mensaje.length > 5000) {
         return res.status(400).json({ success: false, message: 'Revisa que el nombre, el correo y el mensaje sean válidos.' });
     }
 
-    // Datos del formulario
-    const formData = new URLSearchParams();
-    formData.append('entry.1482843314', name);
-    formData.append('entry.581862399', email);
-    formData.append('entry.482834791', message);
-    formData.append('entry.962321167', serviceName);
-
+    const ahora = new Date().toISOString();
+    let lead;
     try {
-        // Enviar datos a Google Forms
-        const response = await fetch(FORM_URL, { method: 'POST', body: formData });
-        if (!response.ok) {
-            throw new Error(`Google Forms respondió con estado ${response.status}`);
-        }
-
-        res.json({ success: true, message: '¡Gracias por tu interés! Nos pondremos en contacto pronto.' });
+        lead = await store.addLead({
+            creado: ahora,
+            nombre,
+            email,
+            servicio,
+            mensaje,
+            estado: 'nuevo',
+            proximoSeguimiento: '',
+            actualizado: ahora
+        });
     } catch (error) {
-        console.error('Error al enviar a Google Forms:', error);
-        res.status(502).json({ success: false, message: 'Error al procesar el formulario. Inténtalo de nuevo más tarde.' });
+        console.error('Error al guardar el contacto:', error);
+        return res.status(502).json({ success: false, message: 'Error al procesar el formulario. Inténtalo de nuevo más tarde.' });
     }
+
+    avisarNuevoLead(lead, SERVICIOS[servicio]);
+    res.json({ success: true, message: '¡Gracias por tu interés! Nos pondremos en contacto pronto.' });
+}));
+
+// ---------- Panel del CRM ----------
+
+const adminDir = path.join(__dirname, 'admin');
+
+app.use('/admin/assets', express.static(path.join(adminDir, 'assets')));
+
+app.get('/admin/login', (req, res) => {
+    if (auth.sesionValida(req)) return res.redirect('/admin');
+    res.sendFile(path.join(adminDir, 'login.html'));
+});
+app.post('/admin/login', auth.login);
+app.post('/admin/logout', auth.logout);
+app.get('/admin', auth.requireAuthPage, (req, res) => {
+    res.sendFile(path.join(adminDir, 'index.html'));
 });
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+// ---------- API del CRM (requiere sesión) ----------
+
+const api = express.Router();
+api.use(auth.requireAuthApi);
+
+api.get('/meta', (req, res) => {
+    res.json({ servicios: SERVICIOS, estados: ESTADOS, almacenamiento: store.name, avisosActivos });
 });
+
+api.get('/leads', asyncRoute(async (req, res) => {
+    const leads = await store.listLeads();
+    leads.sort((a, b) => b.creado.localeCompare(a.creado));
+    res.json(leads);
+}));
+
+api.get('/leads/:id', asyncRoute(async (req, res) => {
+    const lead = await store.getLead(req.params.id);
+    if (!lead) return res.status(404).json({ message: 'Contacto no encontrado.' });
+    const notas = await store.listNotas(lead.id);
+    notas.sort((a, b) => b.fecha.localeCompare(a.fecha));
+    res.json({ ...lead, notas });
+}));
+
+api.patch('/leads/:id', asyncRoute(async (req, res) => {
+    const cambios = {};
+    const { estado, proximoSeguimiento } = req.body || {};
+
+    if (estado !== undefined) {
+        if (!ESTADOS[estado]) return res.status(400).json({ message: 'Estado no válido.' });
+        cambios.estado = estado;
+    }
+    if (proximoSeguimiento !== undefined) {
+        if (proximoSeguimiento !== '' && !FECHA_REGEX.test(proximoSeguimiento)) {
+            return res.status(400).json({ message: 'Fecha de seguimiento no válida.' });
+        }
+        cambios.proximoSeguimiento = proximoSeguimiento;
+    }
+    cambios.actualizado = new Date().toISOString();
+
+    const lead = await store.updateLead(req.params.id, cambios);
+    if (!lead) return res.status(404).json({ message: 'Contacto no encontrado.' });
+    res.json(lead);
+}));
+
+api.post('/leads/:id/notas', asyncRoute(async (req, res) => {
+    const texto = String(req.body?.texto || '').trim();
+    if (!texto || texto.length > 5000) return res.status(400).json({ message: 'La nota está vacía o es muy larga.' });
+
+    const lead = await store.getLead(req.params.id);
+    if (!lead) return res.status(404).json({ message: 'Contacto no encontrado.' });
+
+    const nota = await store.addNota({ leadId: lead.id, fecha: new Date().toISOString(), texto });
+    await store.updateLead(lead.id, { actualizado: nota.fecha });
+    res.status(201).json(nota);
+}));
+
+app.use('/api', api);
+
+// Manejador de errores
+app.use((error, req, res, next) => {
+    console.error(error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+});
+
+// ---------- Inicio ----------
+
+store.init()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Servidor corriendo en http://localhost:${PORT}`);
+            console.log(`CRM en http://localhost:${PORT}/admin — datos en ${store.name}`);
+            if (!process.env.ADMIN_PASSWORD) console.warn('Aviso: ADMIN_PASSWORD no está configurada; no se podrá entrar al CRM.');
+            if (!avisosActivos) console.warn('Aviso: correo no configurado (SMTP_HOST / NOTIFY_EMAIL); no se enviarán avisos.');
+        });
+    })
+    .catch(error => {
+        console.error('No se pudo iniciar el almacenamiento:', error.message);
+        process.exit(1);
+    });
