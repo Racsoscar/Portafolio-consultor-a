@@ -58,14 +58,20 @@
 
         <section id="view-contactos" class="view" hidden>
             <div class="filtros">
-                <input type="search" id="filtro-texto" placeholder="Buscar por nombre, correo o mensaje" aria-label="Buscar">
+                <input type="search" id="filtro-texto" placeholder="Buscar por nombre, correo, teléfono o mensaje" aria-label="Buscar">
                 <select id="filtro-estado" aria-label="Filtrar por estado"><option value="">Todos los estados</option></select>
                 <select id="filtro-servicio" aria-label="Filtrar por servicio"><option value="">Todos los servicios</option></select>
+            </div>
+            <div id="barra-seleccion" class="barra-seleccion" hidden>
+                <span id="seleccion-texto"></span>
+                <button type="button" id="seleccion-limpiar" class="btn btn-secundario">Quitar selección</button>
+                <button type="button" id="seleccion-eliminar" class="btn btn-peligro">Eliminar</button>
             </div>
             <div class="card table-card">
                 <table class="tabla">
                     <thead>
                         <tr>
+                            <th class="td-check"><input type="checkbox" id="seleccionar-todos" aria-label="Seleccionar todos los contactos visibles"></th>
                             <th>Fecha</th>
                             <th>Nombre</th>
                             <th>Servicio</th>
@@ -85,6 +91,18 @@
         <button type="button" id="drawer-cerrar" class="drawer-cerrar" aria-label="Cerrar">&times;</button>
         <div id="drawer-contenido"></div>
     </aside>
+
+    <dialog id="confirmar-eliminar" class="dialogo" aria-labelledby="confirmar-titulo">
+        <form method="dialog">
+            <h2 id="confirmar-titulo"></h2>
+            <p>Se eliminarán también sus notas. <strong>Esta acción no se puede deshacer.</strong></p>
+            <ul id="confirmar-lista" class="confirmar-lista"></ul>
+            <div class="dialogo-acciones">
+                <button value="cancelar" class="btn btn-secundario" autofocus>Cancelar</button>
+                <button value="eliminar" class="btn btn-peligro">Eliminar</button>
+            </div>
+        </form>
+    </dialog>
 
     <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

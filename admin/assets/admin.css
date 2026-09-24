@@ -18,6 +18,7 @@
     --status-warning: #fab219;
     --status-critical: #d03b3b;
     --hover: rgba(11, 11, 11, 0.04);
+    --seleccion: rgba(42, 120, 214, 0.10);
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -37,6 +38,7 @@
         --success-text: #0ca30c;
         --danger-text: #f28b82;
         --hover: rgba(255, 255, 255, 0.05);
+        --seleccion: rgba(57, 135, 229, 0.18);
         --shadow: none;
     }
 }
@@ -56,6 +58,7 @@
     --success-text: #0ca30c;
     --danger-text: #f28b82;
     --hover: rgba(255, 255, 255, 0.05);
+    --seleccion: rgba(57, 135, 229, 0.18);
     --shadow: none;
 }
 
@@ -316,6 +319,43 @@ main { padding: 24px; max-width: 1200px; margin: 0 auto; }
 .tabla tbody tr { cursor: pointer; }
 .tabla tbody tr:hover { background: var(--hover); }
 .tabla tbody tr:last-child td { border-bottom: none; }
+.tabla .td-check { width: 1%; padding-right: 0; cursor: default; }
+input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--brand); vertical-align: middle; }
+.tabla tbody tr.seleccionada { background: var(--seleccion); }
+
+.barra-seleccion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--brand);
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 12px;
+}
+.barra-seleccion span { font-weight: 600; margin-right: auto; }
+
+.btn-secundario { background: transparent; color: var(--text-primary); border-color: var(--baseline); }
+.btn-secundario:hover { background: var(--hover); }
+.btn-peligro { background: var(--status-critical); color: #fff; }
+.btn-peligro:hover { filter: brightness(1.1); }
+
+.dialogo {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text-primary);
+    padding: 1.5rem;
+    width: min(440px, calc(100% - 32px));
+}
+.dialogo::backdrop { background: rgba(0, 0, 0, 0.45); }
+.dialogo h2 { font-size: 1.15rem; }
+.dialogo p { color: var(--text-secondary); margin: 0.75rem 0; }
+.confirmar-lista { margin: 0 0 1.25rem; padding-left: 1.25rem; color: var(--text-primary); overflow-wrap: anywhere; }
+.dialogo-acciones { display: flex; justify-content: flex-end; gap: 8px; }
+
 .td-fecha { white-space: nowrap; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .td-email { display: block; color: var(--text-muted); font-size: 0.85rem; }
 
@@ -412,5 +452,6 @@ main { padding: 24px; max-width: 1200px; margin: 0 auto; }
     .tile-value { font-size: 1.6rem; }
     .seguimiento { flex-wrap: wrap; gap: 0.25rem; }
     .seguimiento .fecha-badge { margin-left: 0; }
-    .tabla th:nth-child(3), .tabla td:nth-child(3) { display: none; }
+    .tabla th:nth-child(4), .tabla td:nth-child(4) { display: none; }
+    .tabla th, .tabla td { padding-left: 0.6rem; padding-right: 0.6rem; }
 }

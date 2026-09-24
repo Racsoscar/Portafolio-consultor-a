@@ -11,6 +11,7 @@ const store = createStore();
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const TELEFONO_REGEX = /^[0-9+()\s-]{7,20}$/;
 
 // Envuelve rutas async para que los errores lleguen al manejador de errores
 const asyncRoute = fn => (req, res, next) => fn(req, res, next).catch(next);
@@ -25,11 +26,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/contact', asyncRoute(async (req, res) => {
     const nombre = String(req.body.name || '').trim();
     const email = String(req.body.email || '').trim();
+    const telefono = String(req.body.phone || '').trim().replace(/\s+/g, ' ');
     const mensaje = String(req.body.message || '').trim();
     const servicio = SERVICIOS[req.body['service-type']] ? req.body['service-type'] : 'general';
 
     if (!nombre || !mensaje || !EMAIL_REGEX.test(email) || nombre.length > 200 || email.length > 200 || mensaje.length > 5000) {
         return res.status(400).json({ success: false, message: 'Revisa que el nombre, el correo y el mensaje sean válidos.' });
+    }
+    if (!TELEFONO_REGEX.test(telefono) || telefono.replace(/\D/g, '').length < 7) {
+        return res.status(400).json({ success: false, message: 'Escribe un número de contacto válido (mínimo 7 dígitos).' });
     }
 
     const ahora = new Date().toISOString();
@@ -39,6 +44,7 @@ app.post('/contact', asyncRoute(async (req, res) => {
             creado: ahora,
             nombre,
             email,
+            telefono,
             servicio,
             mensaje,
             estado: 'nuevo',
@@ -112,6 +118,15 @@ api.patch('/leads/:id', asyncRoute(async (req, res) => {
     const lead = await store.updateLead(req.params.id, cambios);
     if (!lead) return res.status(404).json({ message: 'Contacto no encontrado.' });
     res.json(lead);
+}));
+
+api.post('/leads/eliminar', asyncRoute(async (req, res) => {
+    const ids = req.body?.ids;
+    if (!Array.isArray(ids) || !ids.length || ids.length > 500 || !ids.every(id => typeof id === 'string' && id)) {
+        return res.status(400).json({ message: 'Selecciona al menos un contacto.' });
+    }
+    const eliminados = await store.deleteLeads(ids);
+    res.json({ eliminados });
 }));
 
 api.post('/leads/:id/notas', asyncRoute(async (req, res) => {

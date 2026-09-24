@@ -68,6 +68,13 @@ function fechaDeDia(iso) {
     return new Date(y, m - 1, d);
 }
 
+// Número para wa.me: solo dígitos y con indicativo. Si es un celular
+// colombiano de 10 dígitos sin indicativo, se antepone el 57.
+function whatsapp(telefono) {
+    const digitos = telefono.replace(/\D/g, '');
+    return digitos.length === 10 && digitos.startsWith('3') ? `57${digitos}` : digitos;
+}
+
 const nombreServicio = clave => meta.servicios[clave] || clave || 'Sin servicio';
 const nombreEstado = clave => meta.estados[clave] || clave;
 const estaAbierto = lead => lead.estado !== 'ganado' && lead.estado !== 'perdido';
@@ -224,26 +231,104 @@ function renderTablero() {
 
 // ---------- Lista de contactos ----------
 
+// Contactos seleccionados para eliminar
+const seleccion = new Set();
+let visibles = [];
+
+function actualizarSeleccion() {
+    const total = seleccion.size;
+    $('#barra-seleccion').hidden = total === 0;
+    $('#seleccion-texto').textContent = `${total} contacto${total === 1 ? '' : 's'} seleccionado${total === 1 ? '' : 's'}`;
+
+    const todos = $('#seleccionar-todos');
+    const marcados = visibles.filter(l => seleccion.has(l.id)).length;
+    todos.checked = visibles.length > 0 && marcados === visibles.length;
+    todos.indeterminate = marcados > 0 && marcados < visibles.length;
+
+    for (const fila of document.querySelectorAll('#tabla-leads tr')) {
+        const marcado = seleccion.has(fila.dataset.id);
+        fila.classList.toggle('seleccionada', marcado);
+        fila.querySelector('input[type=checkbox]').checked = marcado;
+    }
+}
+
 function renderTabla() {
     const texto = $('#filtro-texto').value.trim().toLowerCase();
     const estado = $('#filtro-estado').value;
     const servicio = $('#filtro-servicio').value;
 
-    const filtrados = leads.filter(l =>
+    visibles = leads.filter(l =>
         (!estado || l.estado === estado) &&
         (!servicio || l.servicio === servicio) &&
-        (!texto || `${l.nombre} ${l.email} ${l.mensaje}`.toLowerCase().includes(texto)));
+        (!texto || `${l.nombre} ${l.email} ${l.telefono || ''} ${l.mensaje}`.toLowerCase().includes(texto)));
 
-    $('#tabla-leads').replaceChildren(...filtrados.map(lead => {
+    // Solo se puede eliminar lo que está a la vista: al filtrar se descarta el resto
+    const idsVisibles = new Set(visibles.map(l => l.id));
+    for (const id of seleccion) if (!idsVisibles.has(id)) seleccion.delete(id);
+
+    $('#tabla-leads').replaceChildren(...visibles.map(lead => {
         const abrir = () => abrirLead(lead.id);
-        return h('tr', { tabindex: 0, onclick: abrir, onkeydown: e => { if (e.key === 'Enter') abrir(); } },
+        const casilla = h('input', {
+            type: 'checkbox',
+            'aria-label': `Seleccionar a ${lead.nombre}`,
+            onclick: e => e.stopPropagation(),
+            onchange: e => {
+                e.target.checked ? seleccion.add(lead.id) : seleccion.delete(lead.id);
+                actualizarSeleccion();
+            }
+        });
+        return h('tr', { 'data-id': lead.id, tabindex: 0, onclick: abrir, onkeydown: e => { if (e.key === 'Enter' && e.target === e.currentTarget) abrir(); } },
+            h('td', { class: 'td-check', onclick: e => { e.stopPropagation(); if (e.target !== casilla) casilla.click(); } }, casilla),
             h('td', { class: 'td-fecha' }, fmtDia.format(new Date(lead.creado))),
-            h('td', {}, lead.nombre, h('span', { class: 'td-email' }, lead.email)),
+            h('td', {}, lead.nombre,
+                h('span', { class: 'td-email' }, lead.email),
+                lead.telefono && h('span', { class: 'td-email' }, lead.telefono)),
             h('td', {}, nombreServicio(lead.servicio)),
             h('td', {}, badgeEstado(lead.estado)),
             h('td', {}, badgeSeguimiento(lead)));
     }));
-    $('#tabla-vacia').hidden = filtrados.length > 0;
+    $('#tabla-vacia').hidden = visibles.length > 0;
+    actualizarSeleccion();
+}
+
+function seleccionarTodos(marcar) {
+    for (const lead of visibles) marcar ? seleccion.add(lead.id) : seleccion.delete(lead.id);
+    actualizarSeleccion();
+}
+
+async function eliminarSeleccionados() {
+    const elegidos = leads.filter(l => seleccion.has(l.id));
+    if (!elegidos.length) return;
+
+    // Confirmación: muestra hasta 5 nombres
+    const dialogo = $('#confirmar-eliminar');
+    $('#confirmar-titulo').textContent = elegidos.length === 1
+        ? '¿Eliminar este contacto?'
+        : `¿Eliminar ${elegidos.length} contactos?`;
+    $('#confirmar-lista').replaceChildren(
+        ...elegidos.slice(0, 5).map(l => h('li', {}, `${l.nombre} (${l.email})`)),
+        ...(elegidos.length > 5 ? [h('li', {}, `y ${elegidos.length - 5} más`)] : []));
+    dialogo.returnValue = '';
+    dialogo.showModal();
+    await new Promise(resolve => dialogo.addEventListener('close', resolve, { once: true }));
+    if (dialogo.returnValue !== 'eliminar') return;
+
+    const boton = $('#seleccion-eliminar');
+    boton.disabled = true;
+    try {
+        const ids = elegidos.map(l => l.id);
+        const { eliminados } = await api('/api/leads/eliminar', { method: 'POST', body: JSON.stringify({ ids }) });
+        const borrados = new Set(ids);
+        leads = leads.filter(l => !borrados.has(l.id));
+        seleccion.clear();
+        if (leadAbierto && borrados.has(leadAbierto)) cerrarLead();
+        renderTodo();
+        toast(`${eliminados} contacto${eliminados === 1 ? '' : 's'} eliminado${eliminados === 1 ? '' : 's'}`);
+    } catch (error) {
+        toast(error.message, true);
+    } finally {
+        boton.disabled = false;
+    }
 }
 
 // ---------- Ficha del contacto ----------
@@ -343,6 +428,11 @@ function renderFicha(lead) {
         h('h2', { id: 'drawer-titulo' }, lead.nombre),
         h('dl', { class: 'ficha-datos' },
             h('dt', {}, 'Correo'), h('dd', {}, h('a', { href: `mailto:${lead.email}` }, lead.email)),
+            h('dt', {}, 'Teléfono'), h('dd', {}, lead.telefono
+                ? [h('a', { href: `tel:${lead.telefono.replace(/[^\d+]/g, '')}` }, lead.telefono),
+                    ' · ',
+                    h('a', { href: `https://wa.me/${whatsapp(lead.telefono)}`, target: '_blank', rel: 'noopener noreferrer' }, 'WhatsApp')]
+                : 'No registrado'),
             h('dt', {}, 'Servicio'), h('dd', {}, nombreServicio(lead.servicio)),
             h('dt', {}, 'Recibido'), h('dd', {}, fmtDiaHora.format(new Date(lead.creado))),
             h('dt', {}, 'Estado'), h('dd', {}, badgeEstado(lead.estado))),
@@ -410,6 +500,9 @@ for (const id of ['#filtro-texto', '#filtro-estado', '#filtro-servicio']) {
     $(id).addEventListener('input', renderTabla);
 }
 $('#recargar').addEventListener('click', cargar);
+$('#seleccionar-todos').addEventListener('change', e => seleccionarTodos(e.target.checked));
+$('#seleccion-limpiar').addEventListener('click', () => { seleccion.clear(); actualizarSeleccion(); });
+$('#seleccion-eliminar').addEventListener('click', eliminarSeleccionados);
 $('#salir').addEventListener('click', async () => {
     await fetch('/admin/logout', { method: 'POST' });
     location.href = '/admin/login';
