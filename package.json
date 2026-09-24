@@ -1,18 +1,18 @@
 {
   "name": "portafolio-consultor-a",
   "version": "1.0.0",
-  "description": "Portafolio de Consultoría Especializada con backend para almacenar contactos",
+  "description": "Portafolio de Consultoría Especializada con formulario de contacto conectado a Google Forms",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "axios": "^1.6.0",
-    "express": "^4.18.2",
-    "body-parser": "^1.20.2",
-    "multer": "^1.4.5-lts.1"
+    "express": "^4.21.2"
   },
   "keywords": ["portafolio", "consultoria", "web"],
-  "author": "",
+  "author": "Racsoscar",
   "license": "ISC"
 }

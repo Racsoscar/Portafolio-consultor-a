@@ -7,6 +7,7 @@
     <title>Portafolio de Consultoría Especializada</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+</head>
 
 <body>
     <header>
@@ -30,7 +31,7 @@
                     <div class="consultor-info">
                         <p><strong>Juan David Veloza</strong></p>
                         <p>Resumen profesional del consultor de Sistemas. Puedes copiar aquí el extracto de LinkedIn.</p>
-                        <a href="https://www.linkedin.com/in/usuario-sistemas" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                        <a href="https://www.linkedin.com/in/usuario-sistemas" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
                     </div>
                 </div>
                 <div class="consultor-card">
@@ -38,7 +39,7 @@
                     <div class="consultor-info">
                         <p><strong>Paula Rocio Veloza</strong></p>
                         <p>Ingeniera Ambiental con Maestría en Geomática (en curso) y experiencia en proyectos ambientales, adaptación al cambio climático y caracterización de ecosistemas. Experto en Sistemas de Información Geográfica (GIS), con habilidades en cartografía, análisis de datos geoespaciales y manejo de software especializado. Conoce la evaluación de impacto ambiental, planes de manejo y restauración. Destaca por su trabajo en equipo y enfoque en resultados.</p>
-                        <a href="https://www.linkedin.com/in/paularvelozam-a3a33665/" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                        <a href="https://www.linkedin.com/in/paularvelozam-a3a33665/" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
                     </div>
                 </div>
                 <div class="consultor-card">
@@ -46,7 +47,7 @@
                     <div class="consultor-info">
                         <p><strong>Carlos Andrés Veloza</strong></p>
                         <p>Resumen profesional del consultor civil. Puedes copiar aquí el extracto de LinkedIn.</p>
-                        <a href="https://www.linkedin.com/in/usuario-civil" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                        <a href="https://www.linkedin.com/in/usuario-civil" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
                     </div>
                 </div>
                 <div class="consultor-card">
@@ -54,7 +55,7 @@
                     <div class="consultor-info">
                         <p><strong>Carlos Mauricio Veloza</strong></p>
                         <p>Resumen profesional de Carlos Mauricio Veloza. Ingeniero Mecánico y consultor en procesos de acreditación educativa. Experiencia en diseño mecánico, mantenimiento industrial, eficiencia energética y acompañamiento en gestión y mejora continua para instituciones y programas académicos.</p>
-                        <a href="https://www.linkedin.com/in/usuario-mecanica" target="_blank" class="linkedin-btn">Ver perfil en LinkedIn</a>
+                        <a href="https://www.linkedin.com/in/usuario-mecanica" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
                     </div>
                 </div>
             </div>
@@ -117,9 +118,9 @@
         </section>
     </main>
     <div id="contact-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h3>Solicitar información</h3>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <button type="button" class="close" onclick="closeModal()" aria-label="Cerrar">&times;</button>
+            <h3 id="modal-title">Solicitar información</h3>
             <form id="contact-form" action="/contact" method="POST">
                 <input type="hidden" id="service-type" name="service-type">
                 <label for="name">Nombre:</label>
@@ -130,13 +131,13 @@
                 <textarea id="message" name="message" required></textarea>
                 <button type="submit">Enviar</button>
             </form>
-            <div id="form-response" class="hidden"></div>
+            <div id="form-response" class="hidden" role="status" aria-live="polite"></div>
         </div>
     </div>
     <footer>
         <p>&copy; 2025 Consultoría Especializada. Todos los derechos reservados.</p>
     </footer>
-    <button id="scrollToTop" class="scroll-to-top" onclick="scrollToTop()">↑</button>
+    <button id="scrollToTop" class="scroll-to-top" onclick="scrollToTop()" aria-label="Volver arriba">↑</button>
     <script src="script.js"></script>
 </body>
 </html>

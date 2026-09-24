@@ -1,23 +1,25 @@
 # Portafolio de Consultoría Especializada
 
-Este es un portafolio web para Consultoría Especializada, con un backend para almacenar información de personas interesadas.
+Portafolio web para Consultoría Especializada. El formulario de contacto envía los datos de las personas interesadas a un Google Form, donde quedan registrados.
 
-## Instalación y Ejecución
+## Instalación y ejecución
 
 ### Requisitos
-- Python 3.x instalado
-- Flask instalado (`pip install flask`)
+- [Node.js](https://nodejs.org/) 18 o superior
 
 ### Pasos
 1. Clona o descarga el proyecto.
-2. Instala las dependencias: `pip install -r requirements.txt`
-3. Ejecuta el servidor: `python app.py`
-4. Abre http://localhost:5000 en tu navegador.
+2. Instala las dependencias: `npm install`
+3. Ejecuta el servidor: `npm start`
+4. Abre http://localhost:3000 en tu navegador.
 
-## Funcionalidades
-- Sitio web estático con diseño atractivo.
-- Formulario de contacto que guarda datos en `contacts.json`.
-- Imágenes profesionales de stock.
+El puerto se puede cambiar con la variable de entorno `PORT`.
 
-## Almacenamiento de Datos
-Los datos de contacto se guardan en `contacts.json` en el directorio raíz. Cada entrada incluye nombre, email, mensaje, tipo de servicio y timestamp.
+## Estructura
+- `public/`: sitio estático (HTML, CSS, JS e imágenes). Es lo único que el servidor publica.
+- `server.js`: servidor Express que sirve `public/` y recibe el formulario en `POST /contact`.
+
+## Formulario de contacto
+`server.js` valida los datos (nombre, correo, mensaje y tipo de servicio) y los reenvía a Google Forms. Las respuestas se consultan en la pestaña **Respuestas** del formulario o en la hoja de cálculo vinculada.
+
+Si cambias de formulario, actualiza `FORM_URL` y los identificadores `entry.XXXX` en `server.js`.
