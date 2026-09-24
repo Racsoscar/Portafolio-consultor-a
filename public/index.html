@@ -3,143 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portafolio de Consultoría Especializada: Soluciones integrales en ingeniería y educación superior.">
-    <title>Portafolio de Consultoría Especializada</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="description" content="{{nombre}}: {{eslogan}}. Consultoría en ingeniería de sistemas, ambiental, civil y mecánica, y acompañamiento en procesos de acreditación.">
+    <title>{{nombre}} | {{eslogan}}</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-    <header>
-        <h1>Consultoría Especializada</h1>
-        <p class="subtitle">Soluciones integrales para impulsar tu organización</p>
-        <nav>
-            <ul>
-                <li><a href="#quienes">Quiénes somos</a></li>
-                <li><a href="#servicios">Servicios</a></li>
-                <li><a href="#acreditacion">Acreditación</a></li>
-                <li><a href="#contacto">Contacto</a></li>
-            </ul>
-        </nav>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="#inicio" class="brand" aria-label="{{nombre}}, ir al inicio">
+                <img src="/logo.svg" alt="" width="40" height="40">
+                <span class="brand-name">{{nombre}}</span>
+            </a>
+            <button class="nav-toggle" aria-expanded="false" aria-controls="menu" aria-label="Abrir menú">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <nav id="menu" class="site-nav" aria-label="Principal">
+                <a href="#nosotros">Nosotros</a>
+                <a href="#servicios">Servicios</a>
+                <a href="#acreditacion">Acreditación</a>
+                <a href="#metodologia">Metodología</a>
+                <a href="#equipo">Equipo</a>
+                <a href="#contacto" class="btn btn-primary btn-sm">Contáctenos</a>
+            </nav>
+        </div>
     </header>
-    <main>
-        <section id="quienes" class="quienes-section">
-            <h2>Quiénes somos</h2>
-            <div class="consultores-grid">
-                <div class="consultor-card">
-                    <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Foto de Juan David Veloza, Consultor de Sistemas" class="consultor-foto" />
-                    <div class="consultor-info">
-                        <p><strong>Juan David Veloza</strong></p>
+
+    <main id="contenido">
+        <section id="inicio" class="hero">
+            <div class="container hero-inner">
+                <p class="eyebrow">Consultoría corporativa</p>
+                <h1>Soluciones integrales en ingeniería y educación superior</h1>
+                <p class="hero-lead">Acompañamos a empresas e instituciones en sus proyectos técnicos y en sus procesos de acreditación, con un equipo multidisciplinario y un método de trabajo riguroso.</p>
+                <div class="hero-actions">
+                    <a href="#contacto" class="btn btn-accent">Solicitar asesoría</a>
+                    <a href="#servicios" class="btn btn-outline-light">Conocer servicios</a>
+                </div>
+                <ul class="hero-pilares">
+                    <li><i class="fas fa-layer-group" aria-hidden="true"></i> Cuatro áreas de ingeniería</li>
+                    <li><i class="fas fa-graduation-cap" aria-hidden="true"></i> Acreditación en educación superior</li>
+                    <li><i class="fas fa-users" aria-hidden="true"></i> Equipo multidisciplinario</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="nosotros" class="section">
+            <div class="container">
+                <div class="section-head">
+                    <p class="eyebrow">Nosotros</p>
+                    <h2>Una firma consultora orientada a resultados</h2>
+                    <p>Somos un equipo multidisciplinario con experiencia en consultoría para los sectores de ingeniería y educación superior. Diseñamos soluciones eficientes y a la medida de cada organización.</p>
+                </div>
+                <div class="grid-3">
+                    <article class="card">
+                        <i class="fas fa-bullseye card-icon" aria-hidden="true"></i>
+                        <h3>Misión</h3>
+                        <p>Brindar servicios de consultoría en ingeniería y educación superior que generen valor medible para nuestros clientes, con calidad técnica, ética profesional y cumplimiento normativo.</p>
+                    </article>
+                    <article class="card">
+                        <i class="fas fa-eye card-icon" aria-hidden="true"></i>
+                        <h3>Visión</h3>
+                        <p>Ser reconocidos como una firma consultora de referencia en Colombia por la solidez técnica de nuestro trabajo y por el acompañamiento cercano a cada organización.</p>
+                    </article>
+                    <article class="card">
+                        <i class="fas fa-scale-balanced card-icon" aria-hidden="true"></i>
+                        <h3>Valores</h3>
+                        <ul class="lista-check">
+                            <li>Integridad y transparencia</li>
+                            <li>Rigor técnico</li>
+                            <li>Compromiso con el cliente</li>
+                            <li>Responsabilidad ambiental y social</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="servicios" class="section section-alt">
+            <div class="container">
+                <div class="section-head">
+                    <p class="eyebrow">Servicios</p>
+                    <h2>Áreas de consultoría</h2>
+                    <p>Cada proyecto lo lidera un especialista del área, con el respaldo del equipo completo.</p>
+                </div>
+                <div class="grid-4">
+                    <article class="card service-card">
+                        <i class="fas fa-microchip card-icon" aria-hidden="true"></i>
+                        <h3>Ingeniería de Sistemas</h3>
+                        <ul class="lista-check">
+                            <li>Transformación digital y automatización</li>
+                            <li>Desarrollo de software a la medida</li>
+                            <li>Optimización de procesos de TI</li>
+                        </ul>
+                        <a href="#contacto" class="link-arrow" data-servicio="sistemas">Solicitar información</a>
+                    </article>
+                    <article class="card service-card">
+                        <i class="fas fa-leaf card-icon" aria-hidden="true"></i>
+                        <h3>Ingeniería Ambiental</h3>
+                        <ul class="lista-check">
+                            <li>Gestión ambiental y sostenibilidad</li>
+                            <li>Estudios de impacto ambiental</li>
+                            <li>Auditorías y cumplimiento normativo</li>
+                        </ul>
+                        <a href="#contacto" class="link-arrow" data-servicio="ambiental">Solicitar información</a>
+                    </article>
+                    <article class="card service-card">
+                        <i class="fas fa-building card-icon" aria-hidden="true"></i>
+                        <h3>Ingeniería Civil</h3>
+                        <ul class="lista-check">
+                            <li>Diseño y supervisión de obras</li>
+                            <li>Gestión de proyectos de infraestructura</li>
+                            <li>Consultoría en urbanismo</li>
+                        </ul>
+                        <a href="#contacto" class="link-arrow" data-servicio="civil">Solicitar información</a>
+                    </article>
+                    <article class="card service-card">
+                        <i class="fas fa-gears card-icon" aria-hidden="true"></i>
+                        <h3>Ingeniería Mecánica</h3>
+                        <ul class="lista-check">
+                            <li>Diseño mecánico e innovación</li>
+                            <li>Mantenimiento industrial</li>
+                            <li>Eficiencia energética</li>
+                        </ul>
+                        <a href="#contacto" class="link-arrow" data-servicio="mecanica">Solicitar información</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="acreditacion" class="section">
+            <div class="container destacado">
+                <div>
+                    <p class="eyebrow">Educación superior</p>
+                    <h2>Procesos de acreditación institucional y de programas</h2>
+                    <p>Acompañamos a instituciones de educación superior en la preparación, gestión y mejora continua de sus procesos de acreditación, para asegurar el cumplimiento de los estándares nacionales e internacionales.</p>
+                    <ul class="lista-check">
+                        <li>Autoevaluación y planes de mejoramiento</li>
+                        <li>Preparación de documentos maestros y condiciones de calidad</li>
+                        <li>Acompañamiento en visitas de pares</li>
+                    </ul>
+                    <a href="#contacto" class="btn btn-primary" data-servicio="acreditacion">Solicitar asesoría en acreditación</a>
+                </div>
+                <div class="destacado-icono" aria-hidden="true"><i class="fas fa-award"></i></div>
+            </div>
+        </section>
+
+        <section id="metodologia" class="section section-alt">
+            <div class="container">
+                <div class="section-head">
+                    <p class="eyebrow">Metodología</p>
+                    <h2>Cómo trabajamos</h2>
+                </div>
+                <ol class="pasos">
+                    <li>
+                        <span class="paso-num">01</span>
+                        <h3>Diagnóstico</h3>
+                        <p>Entendemos el contexto, las necesidades y los objetivos de su organización.</p>
+                    </li>
+                    <li>
+                        <span class="paso-num">02</span>
+                        <h3>Propuesta</h3>
+                        <p>Presentamos un plan de trabajo con alcance, cronograma y entregables definidos.</p>
+                    </li>
+                    <li>
+                        <span class="paso-num">03</span>
+                        <h3>Ejecución</h3>
+                        <p>Desarrollamos el proyecto con seguimiento periódico y comunicación permanente.</p>
+                    </li>
+                    <li>
+                        <span class="paso-num">04</span>
+                        <h3>Cierre y seguimiento</h3>
+                        <p>Entregamos resultados medibles y acompañamos la implementación.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="equipo" class="section">
+            <div class="container">
+                <div class="section-head">
+                    <p class="eyebrow">Equipo</p>
+                    <h2>Nuestros consultores</h2>
+                </div>
+                <div class="grid-4">
+                    <article class="card consultor">
+                        <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&auto=format&fit=crop&w=240&q=80" alt="Juan David Veloza" class="consultor-foto" width="120" height="120" loading="lazy">
+                        <h3>Juan David Veloza</h3>
+                        <p class="consultor-rol">Consultor en Ingeniería de Sistemas</p>
                         <p>Resumen profesional del consultor de Sistemas. Puedes copiar aquí el extracto de LinkedIn.</p>
-                        <a href="https://www.linkedin.com/in/usuario-sistemas" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
-                    </div>
-                </div>
-                <div class="consultor-card">
-                    <img src="Imagenes/Paula_Veloza.png" alt="Consultora Ambiental" class="consultor-foto" />
-                    <div class="consultor-info">
-                        <p><strong>Paula Rocio Veloza</strong></p>
-                        <p>Ingeniera Ambiental con Maestría en Geomática (en curso) y experiencia en proyectos ambientales, adaptación al cambio climático y caracterización de ecosistemas. Experto en Sistemas de Información Geográfica (GIS), con habilidades en cartografía, análisis de datos geoespaciales y manejo de software especializado. Conoce la evaluación de impacto ambiental, planes de manejo y restauración. Destaca por su trabajo en equipo y enfoque en resultados.</p>
-                        <a href="https://www.linkedin.com/in/paularvelozam-a3a33665/" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
-                    </div>
-                </div>
-                <div class="consultor-card">
-                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Foto de Carlos Andrés Veloza, Consultor Civil" class="consultor-foto" />
-                    <div class="consultor-info">
-                        <p><strong>Carlos Andrés Veloza</strong></p>
+                        <a href="https://www.linkedin.com/in/usuario-sistemas" target="_blank" rel="noopener noreferrer" class="link-linkedin"><i class="fab fa-linkedin" aria-hidden="true"></i> LinkedIn</a>
+                    </article>
+                    <article class="card consultor">
+                        <img src="Imagenes/Paula_Veloza.png" alt="Paula Rocío Veloza" class="consultor-foto" width="120" height="120" loading="lazy">
+                        <h3>Paula Rocío Veloza</h3>
+                        <p class="consultor-rol">Consultora en Ingeniería Ambiental</p>
+                        <p>Ingeniera Ambiental con Maestría en Geomática (en curso). Experiencia en proyectos ambientales, adaptación al cambio climático, caracterización de ecosistemas y Sistemas de Información Geográfica (SIG).</p>
+                        <a href="https://www.linkedin.com/in/paularvelozam-a3a33665/" target="_blank" rel="noopener noreferrer" class="link-linkedin"><i class="fab fa-linkedin" aria-hidden="true"></i> LinkedIn</a>
+                    </article>
+                    <article class="card consultor">
+                        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=240&q=80" alt="Carlos Andrés Veloza" class="consultor-foto" width="120" height="120" loading="lazy">
+                        <h3>Carlos Andrés Veloza</h3>
+                        <p class="consultor-rol">Consultor en Ingeniería Civil</p>
                         <p>Resumen profesional del consultor civil. Puedes copiar aquí el extracto de LinkedIn.</p>
-                        <a href="https://www.linkedin.com/in/usuario-civil" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
-                    </div>
+                        <a href="https://www.linkedin.com/in/usuario-civil" target="_blank" rel="noopener noreferrer" class="link-linkedin"><i class="fab fa-linkedin" aria-hidden="true"></i> LinkedIn</a>
+                    </article>
+                    <article class="card consultor">
+                        <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=240&q=80" alt="Carlos Mauricio Veloza" class="consultor-foto" width="120" height="120" loading="lazy">
+                        <h3>Carlos Mauricio Veloza</h3>
+                        <p class="consultor-rol">Consultor en Ingeniería Mecánica y Acreditación</p>
+                        <p>Ingeniero Mecánico con experiencia en diseño mecánico, mantenimiento industrial y eficiencia energética, y en el acompañamiento de procesos de acreditación académica.</p>
+                        <a href="https://www.linkedin.com/in/usuario-mecanica" target="_blank" rel="noopener noreferrer" class="link-linkedin"><i class="fab fa-linkedin" aria-hidden="true"></i> LinkedIn</a>
+                    </article>
                 </div>
-                <div class="consultor-card">
-                    <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Foto de Carlos Mauricio Veloza, Ingeniero Mecánico" class="consultor-foto" />
-                    <div class="consultor-info">
-                        <p><strong>Carlos Mauricio Veloza</strong></p>
-                        <p>Resumen profesional de Carlos Mauricio Veloza. Ingeniero Mecánico y consultor en procesos de acreditación educativa. Experiencia en diseño mecánico, mantenimiento industrial, eficiencia energética y acompañamiento en gestión y mejora continua para instituciones y programas académicos.</p>
-                        <a href="https://www.linkedin.com/in/usuario-mecanica" target="_blank" rel="noopener noreferrer" class="linkedin-btn">Ver perfil en LinkedIn</a>
-                    </div>
+            </div>
+        </section>
+
+        <section id="contacto" class="section section-dark">
+            <div class="container contacto">
+                <div class="contacto-info">
+                    <p class="eyebrow">Contacto</p>
+                    <h2>Hablemos de su proyecto</h2>
+                    <p>Déjenos sus datos y un consultor del área se comunicará con usted.</p>
+                    <ul class="datos-contacto">
+                        <li><i class="fas fa-location-dot" aria-hidden="true"></i><span>{{direccion}}<br>{{ciudad}}</span></li>
+                        <li><i class="fas fa-phone" aria-hidden="true"></i><span>{{telefono}}</span></li>
+                        <li><i class="fas fa-envelope" aria-hidden="true"></i><span>{{correo}}</span></li>
+                        <li><i class="fas fa-clock" aria-hidden="true"></i><span>{{horario}}</span></li>
+                    </ul>
                 </div>
+
+                <form id="contact-form" class="form-card" novalidate>
+                    <h3>Solicitud de información</h3>
+                    <div class="form-grid">
+                        <div class="campo">
+                            <label for="name">Nombre completo</label>
+                            <input type="text" id="name" name="name" autocomplete="name" maxlength="200" required>
+                        </div>
+                        <div class="campo">
+                            <label for="email">Correo electrónico</label>
+                            <input type="email" id="email" name="email" autocomplete="email" maxlength="200" required>
+                        </div>
+                        <div class="campo">
+                            <label for="phone">Número de contacto</label>
+                            <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="Ej.: 300 123 4567" pattern="[0-9+\(\)\s\-]{7,20}" title="Escriba un número de 7 a 20 dígitos; puede usar +, espacios, guiones o paréntesis." required>
+                        </div>
+                        <div class="campo">
+                            <label for="service-type">Servicio de interés</label>
+                            <select id="service-type" name="service-type" required>
+                                <option value="general">Consulta general</option>
+                                <option value="sistemas">Ingeniería de Sistemas</option>
+                                <option value="ambiental">Ingeniería Ambiental</option>
+                                <option value="civil">Ingeniería Civil</option>
+                                <option value="mecanica">Ingeniería Mecánica</option>
+                                <option value="acreditacion">Acreditación en educación superior</option>
+                            </select>
+                        </div>
+                        <div class="campo campo-ancho">
+                            <label for="message">Mensaje</label>
+                            <textarea id="message" name="message" rows="4" maxlength="5000" required></textarea>
+                        </div>
+                    </div>
+                    <label class="autorizacion">
+                        <input type="checkbox" id="autorizacion" name="autorizacion" value="si" required>
+                        <span>Autorizo a {{razonSocial}} el tratamiento de mis datos personales para atender esta solicitud, de acuerdo con la <a href="/politica-de-datos.html" target="_blank">Política de Tratamiento de Datos Personales</a> (Ley 1581 de 2012).</span>
+                    </label>
+                    <button type="submit" class="btn btn-accent btn-block">Enviar solicitud</button>
+                    <p id="form-response" class="form-response" role="status" aria-live="polite" hidden></p>
+                </form>
             </div>
-        </section>
-        <section class="intro">
-            <h2>¿Por qué elegirnos?</h2>
-            <p>Somos un equipo multidisciplinario con amplia experiencia en consultoría para los sectores de ingeniería y educación superior. Nos enfocamos en brindar soluciones innovadoras, eficientes y personalizadas, adaptadas a las necesidades de cada cliente.</p>
-        </section>
-        <section id="servicios" class="services-grid">
-            <div class="service-card">
-                <i class="fas fa-cogs service-icon"></i>
-                <h3>Ingeniería de Sistemas</h3>
-                <ul>
-                    <li>Transformación digital y automatización</li>
-                    <li>Desarrollo de software a medida</li>
-                    <li>Optimización de procesos TI</li>
-                </ul>
-                <button onclick="showContact('sistemas')">Quiero saber más</button>
-            </div>
-            <div class="service-card">
-                <i class="fas fa-leaf service-icon"></i>
-                <h3>Ingeniería Ambiental</h3>
-                <ul>
-                    <li>Gestión ambiental y sostenibilidad</li>
-                    <li>Estudios de impacto ambiental</li>
-                    <li>Auditorías y cumplimiento normativo</li>
-                </ul>
-                <button onclick="showContact('ambiental')">Quiero saber más</button>
-            </div>
-            <div class="service-card">
-                <i class="fas fa-building service-icon"></i>
-                <h3>Ingeniería Civil</h3>
-                <ul>
-                    <li>Diseño y supervisión de obras</li>
-                    <li>Gestión de proyectos de infraestructura</li>
-                    <li>Consultoría en urbanismo</li>
-                </ul>
-                <button onclick="showContact('civil')">Quiero saber más</button>
-            </div>
-            <div class="service-card">
-                <i class="fas fa-wrench service-icon"></i>
-                <h3>Ingeniería Mecánica</h3>
-                <ul>
-                    <li>Diseño mecánico e innovación</li>
-                    <li>Mantenimiento industrial</li>
-                    <li>Eficiencia energética</li>
-                </ul>
-                <button onclick="showContact('mecanica')">Quiero saber más</button>
-            </div>
-        </section>
-        <section id="acreditacion" class="acreditacion-section">
-            <h2>Procesos de Acreditación en Educación Superior</h2>
-            <p>Te acompañamos en la preparación, gestión y mejora continua para la acreditación institucional y de programas académicos, asegurando el cumplimiento de estándares nacionales e internacionales.</p>
-            <button onclick="showContact('acreditacion')">Solicitar asesoría</button>
-        </section>
-        <section id="contacto" class="contact-section">
-            <h2>¿Listo para transformar tu organización?</h2>
-            <p>Contáctanos y recibe una asesoría personalizada según tus necesidades.</p>
-            <button onclick="showContact('general')">Contactar ahora</button>
         </section>
     </main>
-    <div id="contact-modal" class="modal hidden">
-        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <button type="button" class="close" onclick="closeModal()" aria-label="Cerrar">&times;</button>
-            <h3 id="modal-title">Solicitar información</h3>
-            <form id="contact-form" action="/contact" method="POST">
-                <input type="hidden" id="service-type" name="service-type">
-                <label for="name">Nombre:</label>
-                <input type="text" id="name" name="name" required>
-                <label for="email">Correo electrónico:</label>
-                <input type="email" id="email" name="email" required>
-                <label for="phone">Número de contacto:</label>
-                <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="Ej.: 300 123 4567" pattern="[0-9+\(\)\s\-]{7,20}" title="Escribe un número de 7 a 20 dígitos; puedes usar +, espacios, guiones o paréntesis." required>
-                <label for="message">Mensaje:</label>
-                <textarea id="message" name="message" required></textarea>
-                <button type="submit">Enviar</button>
-            </form>
-            <div id="form-response" class="hidden" role="status" aria-live="polite"></div>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <img src="/logo.svg" alt="" width="36" height="36">
+                <div>
+                    <strong>{{nombre}}</strong>
+                    <p>{{razonSocial}} · NIT {{nit}}</p>
+                    <p>{{direccion}}, {{ciudad}}</p>
+                </div>
+            </div>
+            <nav class="footer-links" aria-label="Legal">
+                <a href="/politica-de-datos.html">Política de Tratamiento de Datos</a>
+                <a href="#contacto">Contacto</a>
+            </nav>
         </div>
-    </div>
-    <footer>
-        <p>&copy; 2025 Consultoría Especializada. Todos los derechos reservados.</p>
+        <p class="container footer-copy">&copy; {{anio}} {{razonSocial}}. Todos los derechos reservados.</p>
     </footer>
-    <button id="scrollToTop" class="scroll-to-top" onclick="scrollToTop()" aria-label="Volver arriba">↑</button>
+
+    <button id="scrollToTop" class="scroll-to-top" aria-label="Volver arriba" hidden><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
     <script src="script.js"></script>
 </body>
 </html>

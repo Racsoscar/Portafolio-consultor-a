@@ -3,6 +3,7 @@
 const fs = require('fs');
 const { createStore } = require('../lib/store');
 const { verificarCorreo } = require('../lib/notify');
+const { camposPendientes } = require('../lib/corporacion');
 
 let errores = 0;
 const ok = texto => console.log(`  OK     ${texto}`);
@@ -13,6 +14,12 @@ const error = texto => { errores++; console.log(`  ERROR  ${texto}`); };
     console.log('\nAcceso al CRM');
     process.env.ADMIN_PASSWORD ? ok('ADMIN_PASSWORD configurada') : error('Falta ADMIN_PASSWORD en .env');
     process.env.SESSION_SECRET ? ok('SESSION_SECRET configurada') : aviso('Falta SESSION_SECRET: las sesiones se cerrarán al reiniciar');
+
+    console.log('\nDatos de la corporación (config/corporacion.json)');
+    const pendientes = camposPendientes();
+    pendientes.length
+        ? aviso(`Campos por definir: ${pendientes.join(', ')}`)
+        : ok('Todos los datos están completos');
 
     console.log('\nAlmacenamiento');
     const { GOOGLE_SHEET_ID, GOOGLE_APPLICATION_CREDENTIALS } = process.env;

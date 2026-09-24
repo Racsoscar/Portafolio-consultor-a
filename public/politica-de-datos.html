@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Política de Tratamiento de Datos Personales de {{razonSocial}}.">
+    <title>Política de Tratamiento de Datos Personales | {{nombre}}</title>
+    <link rel="icon" href="/logo.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="brand" aria-label="{{nombre}}, volver al inicio">
+                <img src="/logo.svg" alt="" width="40" height="40">
+                <span class="brand-name">{{nombre}}</span>
+            </a>
+            <a href="/#contacto" class="btn btn-primary btn-sm">Volver al sitio</a>
+        </div>
+    </header>
+
+    <main class="legal">
+        <div class="container">
+            <p class="eyebrow">Documento legal</p>
+            <h1>Política de Tratamiento de Datos Personales</h1>
+            <p class="meta">Versión {{politicaDatosVersion}} · Vigente desde el {{politicaDatosFecha}}</p>
+
+            <h2>1. Responsable del tratamiento</h2>
+            <div class="ficha-responsable">
+                <p><strong>Razón social:</strong> {{razonSocial}}</p>
+                <p><strong>NIT:</strong> {{nit}}</p>
+                <p><strong>Dirección:</strong> {{direccion}}, {{ciudad}}</p>
+                <p><strong>Teléfono:</strong> {{telefono}}</p>
+                <p><strong>Correo para asuntos de datos personales:</strong> {{correoDatosPersonales}}</p>
+            </div>
+
+            <h2>2. Marco legal</h2>
+            <p>Esta política se expide en cumplimiento del artículo 15 de la Constitución Política de Colombia, la Ley Estatutaria 1581 de 2012 y el Decreto 1377 de 2013, compilado en el Decreto Único Reglamentario 1074 de 2015, y las demás normas que los modifiquen o complementen.</p>
+
+            <h2>3. Datos que recolectamos</h2>
+            <p>A través del formulario de contacto del sitio web recolectamos: nombre completo, correo electrónico, número de contacto, servicio de interés y el mensaje que usted escriba. No solicitamos datos sensibles ni datos de niños, niñas o adolescentes.</p>
+
+            <h2>4. Finalidades del tratamiento</h2>
+            <p>Los datos personales serán tratados para:</p>
+            <ul>
+                <li>Atender y responder su solicitud de información.</li>
+                <li>Contactarle por correo electrónico, teléfono o WhatsApp en relación con los servicios consultados.</li>
+                <li>Elaborar y enviar propuestas comerciales y hacer seguimiento a las mismas.</li>
+                <li>Gestionar la relación comercial y llevar el registro interno de solicitudes.</li>
+                <li>Cumplir obligaciones legales y atender requerimientos de autoridades competentes.</li>
+            </ul>
+
+            <h2>5. Derechos del titular</h2>
+            <p>Como titular de los datos, usted tiene derecho a:</p>
+            <ul>
+                <li>Conocer, actualizar y rectificar sus datos personales.</li>
+                <li>Solicitar prueba de la autorización otorgada.</li>
+                <li>Ser informado, previa solicitud, sobre el uso que se ha dado a sus datos.</li>
+                <li>Presentar quejas ante la Superintendencia de Industria y Comercio por infracciones a la ley.</li>
+                <li>Revocar la autorización y solicitar la supresión de sus datos cuando no se respeten los principios, derechos y garantías legales.</li>
+                <li>Acceder de forma gratuita a sus datos personales.</li>
+            </ul>
+
+            <h2>6. Consultas y reclamos</h2>
+            <p>Para ejercer sus derechos, escriba a <strong>{{correoDatosPersonales}}</strong> indicando su nombre, identificación, datos de contacto y la descripción de su solicitud.</p>
+            <ul>
+                <li><strong>Consultas:</strong> se atenderán en un plazo máximo de diez (10) días hábiles contados a partir de su recibo, prorrogable por cinco (5) días hábiles más, previa comunicación de los motivos.</li>
+                <li><strong>Reclamos</strong> (corrección, actualización, supresión o incumplimiento): se atenderán en un plazo máximo de quince (15) días hábiles contados a partir del día siguiente a su recibo, prorrogable por ocho (8) días hábiles más, previa comunicación de los motivos.</li>
+            </ul>
+            <p>El área responsable de atender las consultas y reclamos es la Dirección Administrativa de {{razonSocial}}.</p>
+
+            <h2>7. Encargados y almacenamiento</h2>
+            <p>Para prestar el servicio, los datos se almacenan en herramientas tecnológicas de terceros que actúan como encargados del tratamiento, como Google LLC (Google Workspace / Google Sheets), cuyos servidores pueden estar ubicados fuera de Colombia. Estos proveedores cuentan con estándares de seguridad y protección de datos adecuados. Al otorgar su autorización, usted acepta esta transmisión de datos.</p>
+
+            <h2>8. Seguridad de la información</h2>
+            <p>Adoptamos medidas técnicas, humanas y administrativas razonables para proteger los datos personales contra adulteración, pérdida, consulta, uso o acceso no autorizado. El acceso a la información está restringido al personal autorizado.</p>
+
+            <h2>9. Vigencia</h2>
+            <p>Esta política rige desde la fecha indicada al inicio. Los datos se conservarán mientras sea necesario para las finalidades descritas o mientras exista una obligación legal o contractual de conservarlos. Cualquier cambio sustancial se publicará en este sitio web.</p>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p class="container footer-copy">&copy; {{anio}} {{razonSocial}} · NIT {{nit}}</p>
+    </footer>
+</body>
+</html>

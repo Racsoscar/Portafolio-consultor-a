@@ -16,6 +16,11 @@ Portafolio web para Consultoría Especializada, con un CRM para gestionar a las 
 
 Si no configuras Google Sheets, en desarrollo los contactos se guardan en `data/crm.json`. Así se puede probar todo sin credenciales. En producción (`NODE_ENV=production`), Google Sheets es obligatorio.
 
+## Datos de la corporación
+El nombre, las iniciales del logo, la razón social, el NIT, la dirección, el teléfono y los correos están en `config/corporacion.json`. El sitio, la Política de Tratamiento de Datos y el CRM los toman de ahí: al editar el archivo, el cambio se ve al recargar la página, sin reiniciar el servidor. `npm run verificar` avisa qué campos siguen "por definir".
+
+El formulario exige la autorización de tratamiento de datos (Ley 1581 de 2012). Cada contacto guarda la fecha de la autorización y la versión de la política aceptada (`politicaDatosVersion`). Si cambias la política, sube ese número.
+
 ## Estructura
 - `public/`: sitio estático (HTML, CSS, JS e imágenes). Es lo único que el servidor publica.
 - `admin/`: panel del CRM (login, tablero y contactos). Solo se accede con sesión.

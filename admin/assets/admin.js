@@ -435,6 +435,9 @@ function renderFicha(lead) {
                 : 'No registrado'),
             h('dt', {}, 'Servicio'), h('dd', {}, nombreServicio(lead.servicio)),
             h('dt', {}, 'Recibido'), h('dd', {}, fmtDiaHora.format(new Date(lead.creado))),
+            h('dt', {}, 'Datos personales'), h('dd', {}, lead.autorizacionDatos
+                ? `Autorizó el ${fmtDiaHora.format(new Date(lead.autorizacionDatos))} (política v${lead.politicaVersion || '?'})`
+                : 'Sin registro de autorización'),
             h('dt', {}, 'Estado'), h('dd', {}, badgeEstado(lead.estado))),
         h('h3', {}, 'Mensaje'),
         h('p', { class: 'mensaje' }, lead.mensaje),

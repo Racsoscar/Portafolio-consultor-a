@@ -4,6 +4,7 @@ const { SERVICIOS, ESTADOS } = require('./lib/constants');
 const { createStore } = require('./lib/store');
 const auth = require('./lib/auth');
 const { avisarNuevoLead, avisosActivos } = require('./lib/notify');
+const { datosCorporacion, servirPlantillas, logoSvg } = require('./lib/corporacion');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,7 +20,12 @@ const asyncRoute = fn => (req, res, next) => fn(req, res, next).catch(next);
 // Middleware: solo se publica la carpeta public/, nunca el código del servidor ni .env
 app.use(express.urlencoded({ extended: false, limit: '20kb' }));
 app.use(express.json({ limit: '20kb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Las páginas HTML se sirven con los datos de config/corporacion.json ya reemplazados
+const publicDir = path.join(__dirname, 'public');
+app.get('/logo.svg', (req, res) => res.type('image/svg+xml').send(logoSvg()));
+app.use(servirPlantillas(publicDir));
+app.use(express.static(publicDir));
 
 // ---------- Formulario de contacto de la página ----------
 
@@ -31,10 +37,14 @@ app.post('/contact', asyncRoute(async (req, res) => {
     const servicio = SERVICIOS[req.body['service-type']] ? req.body['service-type'] : 'general';
 
     if (!nombre || !mensaje || !EMAIL_REGEX.test(email) || nombre.length > 200 || email.length > 200 || mensaje.length > 5000) {
-        return res.status(400).json({ success: false, message: 'Revisa que el nombre, el correo y el mensaje sean válidos.' });
+        return res.status(400).json({ success: false, message: 'Revise que el nombre, el correo y el mensaje sean válidos.' });
     }
     if (!TELEFONO_REGEX.test(telefono) || telefono.replace(/\D/g, '').length < 7) {
-        return res.status(400).json({ success: false, message: 'Escribe un número de contacto válido (mínimo 7 dígitos).' });
+        return res.status(400).json({ success: false, message: 'Escriba un número de contacto válido (mínimo 7 dígitos).' });
+    }
+    // Ley 1581 de 2012: sin autorización expresa no se pueden tratar los datos
+    if (req.body.autorizacion !== 'si') {
+        return res.status(400).json({ success: false, message: 'Para enviar la solicitud debe autorizar el tratamiento de sus datos personales.' });
     }
 
     const ahora = new Date().toISOString();
@@ -49,15 +59,18 @@ app.post('/contact', asyncRoute(async (req, res) => {
             mensaje,
             estado: 'nuevo',
             proximoSeguimiento: '',
+            // Prueba de la autorización: fecha y versión de la política aceptada
+            autorizacionDatos: ahora,
+            politicaVersion: datosCorporacion().politicaDatosVersion,
             actualizado: ahora
         });
     } catch (error) {
         console.error('Error al guardar el contacto:', error);
-        return res.status(502).json({ success: false, message: 'Error al procesar el formulario. Inténtalo de nuevo más tarde.' });
+        return res.status(502).json({ success: false, message: 'Error al procesar la solicitud. Inténtelo de nuevo más tarde.' });
     }
 
     avisarNuevoLead(lead, SERVICIOS[servicio]);
-    res.json({ success: true, message: '¡Gracias por tu interés! Nos pondremos en contacto pronto.' });
+    res.json({ success: true, message: 'Gracias por su interés. Un consultor se comunicará con usted pronto.' });
 }));
 
 // ---------- Panel del CRM ----------
@@ -66,15 +79,18 @@ const adminDir = path.join(__dirname, 'admin');
 
 app.use('/admin/assets', express.static(path.join(adminDir, 'assets')));
 
-app.get('/admin/login', (req, res) => {
+const paginaAdmin = archivo => (req, res, next) => {
+    req.url = `/${archivo}`;
+    servirPlantillas(adminDir)(req, res, next);
+};
+
+app.get('/admin/login', (req, res, next) => {
     if (auth.sesionValida(req)) return res.redirect('/admin');
-    res.sendFile(path.join(adminDir, 'login.html'));
+    paginaAdmin('login.html')(req, res, next);
 });
 app.post('/admin/login', auth.login);
 app.post('/admin/logout', auth.logout);
-app.get('/admin', auth.requireAuthPage, (req, res) => {
-    res.sendFile(path.join(adminDir, 'index.html'));
-});
+app.get('/admin', auth.requireAuthPage, paginaAdmin('index.html'));
 
 // ---------- API del CRM (requiere sesión) ----------
 
