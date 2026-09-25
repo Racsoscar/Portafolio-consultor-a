@@ -16,9 +16,12 @@
         <nav class="tabs" role="tablist">
             <button class="tab" role="tab" data-view="tablero" aria-selected="true">Tablero</button>
             <button class="tab" role="tab" data-view="contactos" aria-selected="false">Contactos</button>
+            <button class="tab solo-admin" role="tab" data-view="usuarios" aria-selected="false" hidden>Usuarios</button>
         </nav>
         <div class="topbar-actions">
+            <span id="usuario-actual" class="usuario-actual"></span>
             <button id="recargar" class="btn btn-ghost" title="Actualizar datos">Actualizar</button>
+            <button id="mi-password" class="btn btn-ghost">Mi contraseña</button>
             <button id="salir" class="btn btn-ghost">Salir</button>
         </div>
     </header>
@@ -61,6 +64,7 @@
                 <input type="search" id="filtro-texto" placeholder="Buscar por nombre, correo, teléfono o mensaje" aria-label="Buscar">
                 <select id="filtro-estado" aria-label="Filtrar por estado"><option value="">Todos los estados</option></select>
                 <select id="filtro-servicio" aria-label="Filtrar por servicio"><option value="">Todos los servicios</option></select>
+                <select id="filtro-responsable" aria-label="Filtrar por responsable"><option value="">Todos los responsables</option></select>
             </div>
             <div id="barra-seleccion" class="barra-seleccion" hidden>
                 <span id="seleccion-texto"></span>
@@ -75,6 +79,7 @@
                             <th>Fecha</th>
                             <th>Nombre</th>
                             <th>Servicio</th>
+                            <th>Responsable</th>
                             <th>Estado</th>
                             <th>Seguimiento</th>
                         </tr>
@@ -82,6 +87,29 @@
                     <tbody id="tabla-leads"></tbody>
                 </table>
                 <p id="tabla-vacia" class="empty" hidden>No hay contactos que coincidan.</p>
+            </div>
+        </section>
+
+        <section id="view-usuarios" class="view" hidden>
+            <div class="vista-encabezado">
+                <div>
+                    <h2>Usuarios del CRM</h2>
+                    <p class="muted">Los administradores ven y gestionan todo. Los consultores ven solo sus contactos y los que están sin asignar.</p>
+                </div>
+                <button type="button" id="nuevo-usuario" class="btn btn-primary">Nuevo usuario</button>
+            </div>
+            <div class="card table-card">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Rol</th>
+                            <th>Servicios que atiende</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-usuarios"></tbody>
+                </table>
             </div>
         </section>
     </main>
@@ -100,6 +128,23 @@
             <div class="dialogo-acciones">
                 <button value="cancelar" class="btn btn-secundario" autofocus>Cancelar</button>
                 <button value="eliminar" class="btn btn-peligro">Eliminar</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="dialogo-password" class="dialogo" aria-labelledby="password-titulo">
+        <form id="form-password">
+            <h2 id="password-titulo">Cambiar mi contraseña</h2>
+            <label for="password-actual">Contraseña actual</label>
+            <input type="password" id="password-actual" autocomplete="current-password" required>
+            <label for="password-nueva">Nueva contraseña (mínimo 10 caracteres)</label>
+            <input type="password" id="password-nueva" autocomplete="new-password" minlength="10" required>
+            <label for="password-confirmar">Confirmar nueva contraseña</label>
+            <input type="password" id="password-confirmar" autocomplete="new-password" minlength="10" required>
+            <p id="password-error" class="form-error" role="alert" hidden></p>
+            <div class="dialogo-acciones">
+                <button type="button" id="password-cancelar" class="btn btn-secundario">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
             </div>
         </form>
     </dialog>

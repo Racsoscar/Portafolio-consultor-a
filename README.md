@@ -33,7 +33,16 @@ El formulario exige la autorización de tratamiento de datos (Ley 1581 de 2012).
 - **Ficha de cada contacto:** cambiar el estado (Nuevo → Contactado → Propuesta enviada → Ganado/Perdido), programar el próximo seguimiento y registrar notas.
 - **Aviso por correo** cada vez que llega un contacto nuevo (opcional).
 
-Hay un solo usuario administrador, con la contraseña definida en `ADMIN_PASSWORD`.
+### Usuarios y roles
+Cada persona entra con su correo y su contraseña. Los usuarios se guardan en la pestaña **Usuarios** de la hoja, con las contraseñas cifradas (scrypt).
+- **Administrador:** ve todos los contactos, los asigna o reasigna, los elimina y gestiona los usuarios (pestaña *Usuarios* del CRM).
+- **Consultor:** ve solo los contactos asignados a él y los que están sin asignar; puede asignarse un contacto sin responsable, cambiar su estado y seguimiento, y agregar notas.
+
+Cada usuario indica qué servicios atiende. Si un servicio lo atiende **un solo** usuario activo, los contactos nuevos de ese servicio se le asignan automáticamente y el correo de aviso le llega también a él.
+
+Todo cambio de estado, seguimiento o responsable queda en la pestaña **Historial** con quién lo hizo y cuándo, y se ve en la sección *Actividad* de la ficha. Las notas guardan su autor.
+
+El primer administrador se crea solo al iniciar el servidor, cuando todavía no hay usuarios, con `ADMIN_EMAIL`, `ADMIN_NOMBRE` y `ADMIN_PASSWORD` de `.env`. Después, esas variables ya no se usan: los cambios se hacen desde el CRM.
 
 ## Conectar Google Sheets
 1. Crea un proyecto en [Google Cloud Console](https://console.cloud.google.com/) y habilita la **Google Sheets API**.

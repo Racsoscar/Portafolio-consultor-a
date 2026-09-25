@@ -300,10 +300,38 @@ main { padding: 24px; max-width: 1200px; margin: 0 auto; }
 
 .filtros {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
     gap: 12px;
     margin-bottom: 16px;
 }
+
+/* ---------- Usuarios y roles ---------- */
+
+.usuario-actual { align-self: center; font-size: 0.875rem; opacity: 0.85; margin-right: 0.5rem; white-space: nowrap; }
+.rol-consultor .td-check { display: none; }
+.sin-asignar { color: var(--text-muted); font-style: italic; }
+.btn-mini { padding: 0.15rem 0.6rem; font-size: 0.8rem; margin-left: 0.25rem; }
+
+.vista-encabezado { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 16px; }
+.vista-encabezado h2 { font-size: 1.25rem; }
+.vista-encabezado p { margin: 0.25rem 0 0; font-size: 0.9rem; }
+
+.ficha-form .campo-ancho { grid-column: 1 / -1; }
+
+.actividad { list-style: none; padding: 0; margin: 0.75rem 0 0; font-size: 0.9rem; }
+.actividad li { border-left: 3px solid var(--grid); padding: 0.2rem 0 0.2rem 0.75rem; margin-bottom: 0.6rem; }
+.actividad li.empty { border: none; }
+
+.form-usuario .campo-form { margin-bottom: 0.25rem; }
+.form-usuario > .btn { margin-top: 1.25rem; }
+label.check { display: flex; align-items: center; gap: 0.5rem; font-weight: 400; margin: 0.4rem 0; }
+.servicios-usuario { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem 0.75rem; margin: 1rem 0 0.5rem; }
+.servicios-usuario legend { font-weight: 600; font-size: 0.9rem; padding: 0 0.25rem; }
+.ayuda { color: var(--text-muted); font-size: 0.8rem; margin: 0 0 0.5rem; }
+.con-boton { display: flex; gap: 8px; }
+.con-boton input { flex: 1; }
+.dialogo label { display: block; font-weight: 600; font-size: 0.9rem; margin: 0.75rem 0 0.3rem; }
+.dialogo .dialogo-acciones { margin-top: 1.25rem; }
 
 .table-card { padding: 0; overflow-x: auto; }
 .tabla { width: 100%; border-collapse: collapse; }
@@ -452,6 +480,10 @@ input[type="checkbox"] { width: 18px; height: 18px; margin: 0; cursor: pointer; 
     .tile-value { font-size: 1.6rem; }
     .seguimiento { flex-wrap: wrap; gap: 0.25rem; }
     .seguimiento .fecha-badge { margin-left: 0; }
-    .tabla th:nth-child(4), .tabla td:nth-child(4) { display: none; }
+    #view-contactos .tabla th:nth-child(4), #view-contactos .tabla td:nth-child(4),
+    #view-contactos .tabla th:nth-child(5), #view-contactos .tabla td:nth-child(5),
+    #view-usuarios .tabla th:nth-child(3), #view-usuarios .tabla td:nth-child(3) { display: none; }
+    .usuario-actual { display: none; }
+    .vista-encabezado { flex-direction: column; align-items: stretch; }
     .tabla th, .tabla td { padding-left: 0.6rem; padding-right: 0.6rem; }
 }

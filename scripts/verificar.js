@@ -12,7 +12,6 @@ const error = texto => { errores++; console.log(`  ERROR  ${texto}`); };
 
 (async () => {
     console.log('\nAcceso al CRM');
-    process.env.ADMIN_PASSWORD ? ok('ADMIN_PASSWORD configurada') : error('Falta ADMIN_PASSWORD en .env');
     process.env.SESSION_SECRET ? ok('SESSION_SECRET configurada') : aviso('Falta SESSION_SECRET: las sesiones se cerrarán al reiniciar');
 
     console.log('\nDatos de la corporación (config/corporacion.json)');
@@ -33,9 +32,20 @@ const error = texto => { errores++; console.log(`  ERROR  ${texto}`); };
         try {
             const store = createStore();
             await store.init();
-            const leads = await store.listLeads();
+            const leads = await store.list('Leads');
             ok(`${store.name}: conectado, ${leads.length} contacto(s)`);
             if (!GOOGLE_SHEET_ID) aviso('Google Sheets no está configurado: se usa el archivo local de desarrollo');
+
+            const equipo = (await store.list('Usuarios')).filter(u => u.activo !== 'no');
+            const admins = equipo.filter(u => u.rol === 'admin').length;
+            if (equipo.length) {
+                ok(`Usuarios activos: ${equipo.length} (${admins} administrador(es))`);
+                if (!admins) error('No hay ningún administrador activo');
+            } else if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+                aviso(`Aún no hay usuarios: al iniciar el servidor se creará el administrador ${process.env.ADMIN_EMAIL}`);
+            } else {
+                error('No hay usuarios: define ADMIN_EMAIL y ADMIN_PASSWORD en .env para crear el primer administrador');
+            }
         } catch (e) {
             const detalle = e.response?.data?.error?.message || e.message;
             error(`No se pudo conectar: ${detalle}`);

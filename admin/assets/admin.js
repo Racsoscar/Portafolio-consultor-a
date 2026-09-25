@@ -17,8 +17,9 @@ function h(tag, attrs = {}, ...children) {
     return el;
 }
 
-let meta = { servicios: {}, estados: {} };
+let meta = { servicios: {}, estados: {}, roles: {}, equipo: [], usuario: null };
 let leads = [];
+let usuarios = [];
 let leadAbierto = null;
 
 // ---------- Utilidades ----------
@@ -78,6 +79,10 @@ function whatsapp(telefono) {
 const nombreServicio = clave => meta.servicios[clave] || clave || 'Sin servicio';
 const nombreEstado = clave => meta.estados[clave] || clave;
 const estaAbierto = lead => lead.estado !== 'ganado' && lead.estado !== 'perdido';
+const esAdmin = () => meta.usuario?.rol === 'admin';
+const nombreUsuario = id => id
+    ? (meta.equipo.find(u => u.id === id)?.nombre || 'Usuario eliminado')
+    : 'Sin asignar';
 
 function badgeEstado(estado) {
     return h('span', { class: `badge badge-${estado}` }, nombreEstado(estado));
@@ -256,10 +261,15 @@ function renderTabla() {
     const texto = $('#filtro-texto').value.trim().toLowerCase();
     const estado = $('#filtro-estado').value;
     const servicio = $('#filtro-servicio').value;
+    const responsable = $('#filtro-responsable').value;
+    const coincideResponsable = l =>
+        !responsable ||
+        (responsable === '__sin' ? !l.responsableId : l.responsableId === (responsable === '__mio' ? meta.usuario.id : responsable));
 
     visibles = leads.filter(l =>
         (!estado || l.estado === estado) &&
         (!servicio || l.servicio === servicio) &&
+        coincideResponsable(l) &&
         (!texto || `${l.nombre} ${l.email} ${l.telefono || ''} ${l.mensaje}`.toLowerCase().includes(texto)));
 
     // Solo se puede eliminar lo que está a la vista: al filtrar se descarta el resto
@@ -284,6 +294,7 @@ function renderTabla() {
                 h('span', { class: 'td-email' }, lead.email),
                 lead.telefono && h('span', { class: 'td-email' }, lead.telefono)),
             h('td', {}, nombreServicio(lead.servicio)),
+            h('td', { class: lead.responsableId ? '' : 'sin-asignar' }, nombreUsuario(lead.responsableId)),
             h('td', {}, badgeEstado(lead.estado)),
             h('td', {}, badgeSeguimiento(lead)));
     }));
@@ -363,40 +374,70 @@ async function abrirLead(id) {
     renderFicha(lead);
 }
 
+// Guarda cambios del contacto y vuelve a pintar la ficha con el historial actualizado
+async function guardarLead(id, cambios) {
+    const actualizado = await api(`/api/leads/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(cambios)
+    });
+    Object.assign(leads.find(l => l.id === id) || {}, actualizado);
+    renderTodo();
+    if (leadAbierto === id) renderFicha(await api(`/api/leads/${encodeURIComponent(id)}`));
+    toast('Cambios guardados');
+}
+
 function renderFicha(lead) {
     const selectEstado = h('select', { id: 'ficha-estado' },
         Object.entries(meta.estados).map(([clave, etiqueta]) =>
             h('option', { value: clave, selected: clave === lead.estado }, etiqueta)));
     const inputFecha = h('input', { type: 'date', id: 'ficha-seguimiento', value: lead.proximoSeguimiento || '' });
 
+    // Responsable: el administrador elige de la lista; el consultor puede tomar un contacto sin asignar
+    const opcionesResponsable = meta.equipo.filter(u => u.activo || u.id === lead.responsableId);
+    const selectResponsable = esAdmin() && h('select', { id: 'ficha-responsable' },
+        h('option', { value: '' }, 'Sin asignar'),
+        opcionesResponsable.map(u => h('option', { value: u.id, selected: u.id === lead.responsableId },
+            `${u.nombre}${u.activo ? '' : ' (inactivo)'}`)));
+
     const formEstado = h('form', { class: 'ficha-form', onsubmit: async e => {
         e.preventDefault();
-        const boton = formEstado.querySelector('button');
+        const boton = formEstado.querySelector('button[type=submit]');
         boton.disabled = true;
         try {
-            const actualizado = await api(`/api/leads/${encodeURIComponent(lead.id)}`, {
-                method: 'PATCH',
-                body: JSON.stringify({ estado: selectEstado.value, proximoSeguimiento: inputFecha.value })
-            });
-            Object.assign(leads.find(l => l.id === lead.id) || {}, actualizado);
-            renderTodo();
-            renderFicha({ ...actualizado, notas: lead.notas });
-            toast('Cambios guardados');
+            const cambios = { estado: selectEstado.value, proximoSeguimiento: inputFecha.value };
+            if (selectResponsable) cambios.responsableId = selectResponsable.value;
+            await guardarLead(lead.id, cambios);
         } catch (error) {
             toast(error.message, true);
-        } finally {
             boton.disabled = false;
         }
     } },
         h('div', {}, h('label', { for: 'ficha-estado' }, 'Estado'), selectEstado),
         h('div', {}, h('label', { for: 'ficha-seguimiento' }, 'Próximo seguimiento'), inputFecha),
+        selectResponsable && h('div', { class: 'campo-ancho' }, h('label', { for: 'ficha-responsable' }, 'Responsable'), selectResponsable),
         h('button', { type: 'submit', class: 'btn btn-primary' }, 'Guardar cambios'));
+
+    let responsableTexto = nombreUsuario(lead.responsableId);
+    if (!esAdmin() && !lead.responsableId) {
+        responsableTexto = [
+            'Sin asignar ',
+            h('button', { type: 'button', class: 'btn btn-secundario btn-mini', onclick: async e => {
+                e.target.disabled = true;
+                try {
+                    await guardarLead(lead.id, { responsableId: meta.usuario.id });
+                } catch (error) {
+                    toast(error.message, true);
+                    e.target.disabled = false;
+                }
+            } }, 'Asignármelo')
+        ];
+    }
 
     const textoNota = h('textarea', { id: 'nota-texto', rows: 3, required: true, maxlength: 5000, placeholder: 'Ej.: Llamé, pidió propuesta para el lunes.' });
     const listaNotas = h('ul', { class: 'notas' });
     const pintarNotas = notas => listaNotas.replaceChildren(...(notas.length
         ? notas.map(n => h('li', {},
-            h('div', { class: 'nota-fecha' }, fmtDiaHora.format(new Date(n.fecha))),
+            h('div', { class: 'nota-fecha' }, `${fmtDiaHora.format(new Date(n.fecha))}${n.autorNombre ? ` · ${n.autorNombre}` : ''}`),
             h('p', { class: 'nota-texto' }, n.texto)))
         : [h('li', { class: 'empty', style: 'border: none' }, 'Sin notas todavía.')]));
     pintarNotas(lead.notas);
@@ -438,14 +479,115 @@ function renderFicha(lead) {
             h('dt', {}, 'Datos personales'), h('dd', {}, lead.autorizacionDatos
                 ? `Autorizó el ${fmtDiaHora.format(new Date(lead.autorizacionDatos))} (política v${lead.politicaVersion || '?'})`
                 : 'Sin registro de autorización'),
-            h('dt', {}, 'Estado'), h('dd', {}, badgeEstado(lead.estado))),
+            h('dt', {}, 'Estado'), h('dd', {}, badgeEstado(lead.estado)),
+            h('dt', {}, 'Responsable'), h('dd', {}, responsableTexto)),
         h('h3', {}, 'Mensaje'),
         h('p', { class: 'mensaje' }, lead.mensaje),
         h('h3', {}, 'Seguimiento'),
         formEstado,
         h('h3', {}, 'Notas'),
         formNota,
-        listaNotas);
+        listaNotas,
+        h('h3', {}, 'Actividad'),
+        h('ul', { class: 'actividad' }, ...(lead.historial?.length
+            ? lead.historial.map(a => h('li', {},
+                h('div', { class: 'nota-fecha' }, `${fmtDiaHora.format(new Date(a.fecha))} · ${a.usuarioNombre || 'Sistema'}`),
+                h('div', {}, a.detalle)))
+            : [h('li', { class: 'empty' }, 'Sin actividad registrada.')])));
+}
+
+// ---------- Usuarios (solo administradores) ----------
+
+function generarPassword() {
+    const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    const valores = crypto.getRandomValues(new Uint32Array(14));
+    return Array.from(valores, v => caracteres[v % caracteres.length]).join('');
+}
+
+async function cargarUsuarios() {
+    try {
+        usuarios = await api('/api/usuarios');
+        renderUsuarios();
+    } catch (error) {
+        toast(error.message, true);
+    }
+}
+
+function renderUsuarios() {
+    $('#tabla-usuarios').replaceChildren(...usuarios.map(u => {
+        const abrir = () => abrirUsuario(u);
+        return h('tr', { tabindex: 0, onclick: abrir, onkeydown: e => { if (e.key === 'Enter') abrir(); } },
+            h('td', {}, u.nombre, u.id === meta.usuario.id ? ' (usted)' : '', h('span', { class: 'td-email' }, u.email)),
+            h('td', {}, meta.roles[u.rol] || u.rol),
+            h('td', {}, u.servicios.length ? u.servicios.map(nombreServicio).join(', ') : '—'),
+            h('td', {}, h('span', { class: `badge ${u.activo ? 'badge-ganado' : 'badge-perdido'}` }, u.activo ? 'Activo' : 'Inactivo')));
+    }));
+}
+
+// Formulario de usuario en el panel lateral: crear (sin usuario) o editar
+function abrirUsuario(usuario = null) {
+    leadAbierto = null;
+    const nuevo = !usuario;
+    const campo = (id, etiqueta, input) => h('div', { class: 'campo-form' }, h('label', { for: id }, etiqueta), input);
+
+    const nombre = h('input', { id: 'u-nombre', value: usuario?.nombre || '', required: true, maxlength: 120 });
+    const email = h('input', { id: 'u-email', type: 'email', value: usuario?.email || '', required: true, maxlength: 200 });
+    const rol = h('select', { id: 'u-rol' }, Object.entries(meta.roles).map(([clave, etiqueta]) =>
+        h('option', { value: clave, selected: clave === (usuario?.rol || 'consultor') }, etiqueta)));
+    const servicios = Object.entries(meta.servicios).map(([clave, etiqueta]) =>
+        h('label', { class: 'check' },
+            h('input', { type: 'checkbox', value: clave, checked: usuario?.servicios.includes(clave) }), ` ${etiqueta}`));
+    const activo = h('input', { type: 'checkbox', id: 'u-activo', checked: usuario ? usuario.activo : true });
+    const password = h('input', { id: 'u-password', type: 'text', autocomplete: 'off', minlength: 10, required: nuevo,
+        placeholder: nuevo ? 'Mínimo 10 caracteres' : 'Déjela vacía para no cambiarla' });
+
+    const form = h('form', { class: 'form-usuario', onsubmit: async e => {
+        e.preventDefault();
+        const boton = form.querySelector('button[type=submit]');
+        boton.disabled = true;
+        const datos = {
+            nombre: nombre.value,
+            email: email.value,
+            rol: rol.value,
+            servicios: servicios.map(s => s.querySelector('input')).filter(i => i.checked).map(i => i.value)
+        };
+        if (!nuevo) datos.activo = activo.checked;
+        if (password.value) datos.password = password.value;
+        try {
+            await api(nuevo ? '/api/usuarios' : `/api/usuarios/${encodeURIComponent(usuario.id)}`, {
+                method: nuevo ? 'POST' : 'PATCH',
+                body: JSON.stringify(datos)
+            });
+            meta = await api('/api/meta');
+            await cargarUsuarios();
+            renderTodo();
+            mostrarDrawer(false);
+            toast(nuevo
+                ? `Usuario creado. Comparta la contraseña con ${datos.nombre} y pídale que la cambie al entrar.`
+                : 'Usuario actualizado');
+        } catch (error) {
+            toast(error.message, true);
+            boton.disabled = false;
+        }
+    } },
+        campo('u-nombre', 'Nombre', nombre),
+        campo('u-email', 'Correo (con este correo inicia sesión)', email),
+        campo('u-rol', 'Rol', rol),
+        h('fieldset', { class: 'servicios-usuario' },
+            h('legend', {}, 'Servicios que atiende'),
+            h('p', { class: 'ayuda' }, 'Si un servicio lo atiende un solo usuario activo, los contactos nuevos de ese servicio se le asignan automáticamente.'),
+            servicios),
+        !nuevo && h('label', { class: 'check' }, activo, ' Usuario activo (puede iniciar sesión)'),
+        campo('u-password', nuevo ? 'Contraseña temporal' : 'Nueva contraseña (opcional)',
+            h('div', { class: 'con-boton' }, password,
+                h('button', { type: 'button', class: 'btn btn-secundario', onclick: () => { password.value = generarPassword(); } }, 'Generar'))),
+        h('button', { type: 'submit', class: 'btn btn-primary' }, nuevo ? 'Crear usuario' : 'Guardar cambios'));
+
+    $('#drawer-contenido').replaceChildren(
+        h('h2', { id: 'drawer-titulo' }, nuevo ? 'Nuevo usuario' : usuario.nombre),
+        form);
+    mostrarDrawer(true);
+    nombre.focus();
 }
 
 // ---------- Navegación y carga ----------
@@ -456,6 +598,8 @@ function mostrarVista(vista) {
     }
     $('#view-tablero').hidden = vista !== 'tablero';
     $('#view-contactos').hidden = vista !== 'contactos';
+    $('#view-usuarios').hidden = vista !== 'usuarios';
+    if (vista === 'usuarios') cargarUsuarios();
 }
 
 function renderTodo() {
@@ -489,6 +633,19 @@ async function iniciar() {
     for (const [clave, etiqueta] of Object.entries(meta.estados)) $('#filtro-estado').append(h('option', { value: clave }, etiqueta));
     for (const [clave, etiqueta] of Object.entries(meta.servicios)) $('#filtro-servicio').append(h('option', { value: clave }, etiqueta));
 
+    // Interfaz según el rol
+    $('#usuario-actual').textContent = `${meta.usuario.nombre} · ${meta.roles[meta.usuario.rol] || meta.usuario.rol}`;
+    document.body.classList.toggle('rol-admin', esAdmin());
+    document.body.classList.toggle('rol-consultor', !esAdmin());
+    for (const el of document.querySelectorAll('.solo-admin')) el.hidden = !esAdmin();
+    const filtroResponsable = $('#filtro-responsable');
+    if (esAdmin()) {
+        filtroResponsable.append(h('option', { value: '__sin' }, 'Sin asignar'),
+            ...meta.equipo.map(u => h('option', { value: u.id }, u.nombre)));
+    } else {
+        filtroResponsable.append(h('option', { value: '__mio' }, 'Asignados a mí'), h('option', { value: '__sin' }, 'Sin asignar'));
+    }
+
     mostrarVista('tablero');
     await cargar();
 
@@ -499,13 +656,41 @@ async function iniciar() {
 for (const tab of document.querySelectorAll('.tab')) {
     tab.addEventListener('click', () => mostrarVista(tab.dataset.view));
 }
-for (const id of ['#filtro-texto', '#filtro-estado', '#filtro-servicio']) {
+for (const id of ['#filtro-texto', '#filtro-estado', '#filtro-servicio', '#filtro-responsable']) {
     $(id).addEventListener('input', renderTabla);
 }
 $('#recargar').addEventListener('click', cargar);
 $('#seleccionar-todos').addEventListener('change', e => seleccionarTodos(e.target.checked));
 $('#seleccion-limpiar').addEventListener('click', () => { seleccion.clear(); actualizarSeleccion(); });
 $('#seleccion-eliminar').addEventListener('click', eliminarSeleccionados);
+$('#nuevo-usuario').addEventListener('click', () => abrirUsuario());
+
+// Cambiar la contraseña propia
+const dialogoPassword = $('#dialogo-password');
+$('#mi-password').addEventListener('click', () => {
+    $('#form-password').reset();
+    $('#password-error').hidden = true;
+    dialogoPassword.showModal();
+});
+$('#password-cancelar').addEventListener('click', () => dialogoPassword.close());
+$('#form-password').addEventListener('submit', async e => {
+    e.preventDefault();
+    const error = $('#password-error');
+    const nueva = $('#password-nueva').value;
+    if (nueva !== $('#password-confirmar').value) {
+        error.textContent = 'La confirmación no coincide con la nueva contraseña.';
+        error.hidden = false;
+        return;
+    }
+    try {
+        await api('/api/cuenta/password', { method: 'POST', body: JSON.stringify({ actual: $('#password-actual').value, nueva }) });
+        dialogoPassword.close();
+        toast('Contraseña actualizada');
+    } catch (err) {
+        error.textContent = err.message;
+        error.hidden = false;
+    }
+});
 $('#salir').addEventListener('click', async () => {
     await fetch('/admin/logout', { method: 'POST' });
     location.href = '/admin/login';
