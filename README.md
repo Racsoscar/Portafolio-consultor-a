@@ -60,6 +60,11 @@ Completa las variables `SMTP_*` y `NOTIFY_EMAIL` en `.env`. Con Gmail:
 - `SMTP_USER`: tu correo de Gmail
 - `SMTP_PASS`: una [contraseña de aplicación](https://myaccount.google.com/apppasswords) (requiere la verificación en dos pasos). No uses tu contraseña normal.
 
+## Demostración portátil
+`npm run demo` genera `dist/demo-consultoria.html`: un solo archivo con el sitio, el CRM y la política de datos que se abre con doble clic, sin servidor ni internet. Usa el mismo código de la aplicación, pero con un simulador de la API (`demo/mock-api.js`) y **datos ficticios** en memoria: no se conecta a Google Sheets, no envía correos y no guarda nada. Sirve para mostrar el avance a personas que no tienen acceso al CRM real.
+
+Vuelva a generarlo después de cambiar el sitio, el CRM o `config/corporacion.json`.
+
 ## Verificar la configuración
 `npm run verificar` revisa la contraseña del CRM, la conexión con Google Sheets (y crea las pestañas si faltan) y el acceso al servidor de correo, sin enviar nada.
 

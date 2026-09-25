@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Demostración · {{NOMBRE}}</title>
+    <link rel="icon" href="{{LOGO}}">
+    <style>
+        :root {
+            --navy: #0a2540;
+            --navy-2: #123a63;
+            --gold: #c9a227;
+            --gold-dark: #a8861a;
+            --text: #1f2933;
+            --muted: #52606d;
+            --bg: #f5f7fa;
+            --border: #e4e7eb;
+            --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body { margin: 0; font-family: var(--font); color: var(--text); background: var(--bg); display: flex; flex-direction: column; }
+
+        .barra {
+            background: var(--navy);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 1rem 1.5rem;
+            padding: 0.6rem 16px;
+            flex-wrap: wrap;
+            border-bottom: 3px solid var(--gold);
+        }
+        .marca { display: flex; align-items: center; gap: 0.6rem; }
+        .marca img { width: 32px; height: 32px; border-radius: 6px; }
+        .marca strong { font-family: var(--serif); font-size: 1.05rem; }
+        .marca span { display: block; font-size: 0.75rem; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+        .pestanas { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+        .pestana {
+            font: inherit; font-size: 0.95rem; color: #fff; background: transparent; border: none;
+            border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer; opacity: 0.8;
+        }
+        .pestana:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
+        .pestana[aria-selected="true"] { opacity: 1; background: rgba(255, 255, 255, 0.16); font-weight: 600; }
+        .pestana:focus-visible, .control:focus-visible, .boton:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+        .acciones { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        .acciones label { font-size: 0.85rem; opacity: 0.85; }
+        .control { font: inherit; font-size: 0.9rem; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.35); background: var(--navy-2); color: #fff; padding: 0.35rem 0.5rem; max-width: 280px; }
+        .boton { font: inherit; font-size: 0.9rem; font-weight: 600; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.45); background: transparent; color: #fff; padding: 0.35rem 0.8rem; cursor: pointer; }
+        .boton:hover { background: rgba(255, 255, 255, 0.1); }
+
+        .aviso-demo { background: #fff8e1; color: #5c4400; font-size: 0.85rem; padding: 0.45rem 16px; border-bottom: 1px solid #f0e0a8; }
+
+        .vistas { flex: 1; position: relative; min-height: 0; }
+        .vista { position: absolute; inset: 0; border: 0; width: 100%; height: 100%; background: #fff; }
+        .vista[hidden] { display: none; }
+
+        /* Guía */
+        .guia { overflow-y: auto; background: var(--bg); }
+        .guia-contenido { max-width: 860px; margin: 0 auto; padding: 2.5rem 16px 4rem; line-height: 1.6; }
+        .guia h1, .guia h2 { font-family: var(--serif); color: var(--navy); line-height: 1.25; }
+        .guia h1 { font-size: clamp(1.7rem, 4vw, 2.3rem); margin: 0 0 0.5rem; }
+        .guia h2 { font-size: 1.35rem; margin: 2.25rem 0 0.75rem; }
+        .guia .intro { font-size: 1.1rem; color: var(--muted); }
+        .eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-dark); margin: 0 0 0.5rem; }
+        .flujo { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; list-style: none; padding: 0; margin: 1rem 0 0; counter-reset: paso; }
+        .flujo li { background: #fff; border: 1px solid var(--border); border-top: 3px solid var(--navy); border-radius: 8px; padding: 1rem; font-size: 0.95rem; }
+        .flujo li::before { counter-increment: paso; content: counter(paso); display: block; font-family: var(--serif); font-weight: 700; font-size: 1.4rem; color: var(--gold-dark); }
+        .flujo strong { display: block; color: var(--navy); margin-bottom: 0.25rem; }
+        .recorrido { padding-left: 1.3rem; }
+        .recorrido li { margin-bottom: 0.6rem; }
+        .ir { font: inherit; font-weight: 600; color: var(--navy-2); background: none; border: none; padding: 0; text-decoration: underline; cursor: pointer; }
+        .tabla-estado { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 0.95rem; }
+        .tabla-estado th, .tabla-estado td { text-align: left; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .tabla-estado th { background: var(--bg); font-size: 0.85rem; color: var(--muted); }
+        .tabla-estado tr:last-child td { border-bottom: none; }
+        .listo { color: #1e7b34; font-weight: 600; white-space: nowrap; }
+        .pendiente { color: #8a5a00; font-weight: 600; white-space: nowrap; }
+        .nota { background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--gold); border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1rem; }
+        .pie-guia { color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
+
+        .toast {
+            position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+            max-width: min(560px, calc(100% - 32px)); background: var(--navy); color: #fff;
+            padding: 0.8rem 1.1rem; border-radius: 8px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            font-size: 0.92rem; z-index: 10; border-left: 4px solid var(--gold);
+        }
+        .toast[hidden] { display: none; }
+
+        @media (max-width: 760px) {
+            .marca span { display: none; }
+            .acciones { margin-left: 0; width: 100%; }
+            .control { flex: 1; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="barra">
+        <div class="marca">
+            <img src="{{LOGO}}" alt="">
+            <div>
+                <strong>{{NOMBRE}}</strong>
+                <span>Demostración</span>
+            </div>
+        </div>
+        <nav class="pestanas" role="tablist" aria-label="Secciones de la demostración">
+            <button class="pestana" role="tab" data-vista="guia" aria-selected="true">Guía</button>
+            <button class="pestana" role="tab" data-vista="sitio" aria-selected="false">Página web</button>
+            <button class="pestana" role="tab" data-vista="crm" aria-selected="false">CRM</button>
+            <button class="pestana" role="tab" data-vista="politica" aria-selected="false">Política de datos</button>
+        </nav>
+        <div class="acciones">
+            <label for="ver-como" id="ver-como-etiqueta" hidden>Ver el CRM como</label>
+            <select id="ver-como" class="control" hidden></select>
+            <button id="reiniciar" class="boton" title="Vuelve a los datos de ejemplo iniciales">Reiniciar demo</button>
+        </div>
+    </header>
+    <div class="aviso-demo" role="note">
+        Versión de demostración con <strong>datos ficticios</strong>. Todo funciona, pero nada de lo que haga aquí se guarda ni se envía.
+    </div>
+
+    <main class="vistas">
+        <section id="vista-guia" class="vista guia" aria-label="Guía">
+            <div class="guia-contenido">
+                <p class="eyebrow">Informe de avance · {{FECHA}}</p>
+                <h1>Sitio web corporativo y CRM de clientes</h1>
+                <p class="intro">Esta demostración presenta el sitio web de {{NOMBRE}} y el sistema de gestión de clientes (CRM) que registra y hace seguimiento a cada persona que solicita información. Es la misma aplicación que se publicará, con datos de ejemplo.</p>
+
+                <h2>Cómo funciona</h2>
+                <ol class="flujo">
+                    <li><strong>Solicitud</strong>Un interesado llena el formulario de la página web y autoriza el tratamiento de sus datos.</li>
+                    <li><strong>Registro</strong>La solicitud se guarda en la base de datos de la corporación (una hoja de Google Sheets propia).</li>
+                    <li><strong>Asignación y aviso</strong>Se asigna al consultor del área y se le envía un aviso por correo.</li>
+                    <li><strong>Seguimiento</strong>El consultor gestiona el caso en el CRM: estado, próximas acciones y notas.</li>
+                    <li><strong>Resultados</strong>La dirección ve en el tablero cuántas solicitudes llegan y cuántas se convierten en clientes.</li>
+                </ol>
+
+                <h2>Recorrido sugerido (5 minutos)</h2>
+                <ol class="recorrido">
+                    <li>Abra la <button class="ir" data-ir="sitio">Página web</button> y recorra sus secciones: Nosotros, Servicios, Acreditación, Metodología y Equipo.</li>
+                    <li>En la sección <em>Contacto</em>, llene el formulario con datos inventados. Intente enviarlo sin marcar la autorización de datos: el sistema no lo permite.</li>
+                    <li>Vaya al <button class="ir" data-ir="crm">CRM</button>. En el <em>Tablero</em> verá las cifras y en <em>Contactos</em> aparecerá su solicitud, ya asignada al consultor del servicio que eligió.</li>
+                    <li>Abra un contacto: cambie su estado, programe un seguimiento y agregue una nota. Al final de la ficha, la sección <em>Actividad</em> muestra quién hizo cada cambio.</li>
+                    <li>Arriba, en <em>Ver el CRM como</em>, elija un consultor: verá solo sus casos y los que están sin asignar. Como administrador, en la pestaña <em>Usuarios</em> puede crear usuarios y definir qué servicios atiende cada uno.</li>
+                </ol>
+
+                <h2>Estado del proyecto</h2>
+                <table class="tabla-estado">
+                    <thead>
+                        <tr><th>Componente</th><th>Estado</th><th>Detalle</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Sitio web corporativo</td><td class="listo">✓ Listo</td><td>Diseño, secciones y formulario de contacto. Se adapta a celulares.</td></tr>
+                        <tr><td>Protección de datos (Ley 1581 de 2012)</td><td class="listo">✓ Listo</td><td>Política de tratamiento de datos, autorización obligatoria y registro de la fecha de cada autorización.</td></tr>
+                        <tr><td>CRM de clientes</td><td class="listo">✓ Listo</td><td>Tablero con indicadores, gestión de contactos, notas, seguimientos e historial de cambios.</td></tr>
+                        <tr><td>Usuarios y roles</td><td class="listo">✓ Listo</td><td>Administradores y consultores con permisos distintos; asignación automática por servicio.</td></tr>
+                        <tr><td>Base de datos y avisos por correo</td><td class="listo">✓ Conectado</td><td>Google Sheets y correo de avisos funcionando en el entorno de pruebas.</td></tr>
+                        <tr><td>Datos de la corporación</td><td class="pendiente">Pendiente</td><td>Nombre definitivo, logo, razón social, NIT, dirección, teléfono y correos. Hoy se muestran como "por definir".</td></tr>
+                        <tr><td>Contenido del equipo</td><td class="pendiente">Pendiente</td><td>Perfiles, cargos, enlaces de LinkedIn y fotos de cada consultor.</td></tr>
+                        <tr><td>Revisión jurídica</td><td class="pendiente">Pendiente</td><td>Validación de la política de datos por un abogado.</td></tr>
+                        <tr><td>Publicación en internet</td><td class="pendiente">Pendiente</td><td>Definir hosting y dominio. Costo estimado: dominio de USD 10 a 15 por año; hosting desde planes gratuitos o de bajo costo.</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="nota">
+                    <strong>Sobre los textos de esta versión:</strong> la misión, la visión, los valores y la metodología son un borrador para revisión de la junta. En la sección de equipo, los perfiles incompletos y las fotos pendientes se completarán con la información real de cada consultor.
+                </div>
+
+                <p class="pie-guia">Los nombres de los contactos y de los usuarios del CRM en esta demostración son ficticios.</p>
+            </div>
+        </section>
+        <iframe id="vista-sitio" class="vista" title="Página web" hidden></iframe>
+        <iframe id="vista-crm" class="vista" title="CRM" hidden></iframe>
+        <iframe id="vista-politica" class="vista" title="Política de tratamiento de datos" hidden></iframe>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script id="paginas" type="application/json">{{PAGINAS_JSON}}</script>
+    <script>{{MOCK_JS}}</script>
+    <script>
+        (function () {
+            const PAGINAS = JSON.parse(document.getElementById('paginas').textContent);
+            const backend = DemoBackend.crearBackend();
+            const marcos = {
+                sitio: document.getElementById('vista-sitio'),
+                crm: document.getElementById('vista-crm'),
+                politica: document.getElementById('vista-politica')
+            };
+            const cargados = {};
+            let usuarioId = 'u-admin';
+            let vistaActual = 'guia';
+
+            // ---------- Avisos ----------
+            let temporizador;
+            function aviso(texto, ms = 6000) {
+                const t = document.getElementById('toast');
+                t.textContent = texto;
+                t.hidden = false;
+                clearTimeout(temporizador);
+                temporizador = setTimeout(() => { t.hidden = true; }, ms);
+            }
+
+            // ---------- Navegación ----------
+            function cargar(vista) {
+                marcos[vista].srcdoc = PAGINAS[vista];
+                cargados[vista] = true;
+            }
+
+            function mostrar(vista, ancla) {
+                vistaActual = vista;
+                for (const p of document.querySelectorAll('.pestana')) p.setAttribute('aria-selected', String(p.dataset.vista === vista));
+                document.getElementById('vista-guia').hidden = vista !== 'guia';
+                for (const [nombre, marco] of Object.entries(marcos)) marco.hidden = nombre !== vista;
+                if (marcos[vista] && !cargados[vista]) cargar(vista);
+                const enCrm = vista === 'crm';
+                document.getElementById('ver-como').hidden = !enCrm;
+                document.getElementById('ver-como-etiqueta').hidden = !enCrm;
+                if (ancla && vista === 'sitio') {
+                    // El puente de la página hace el desplazamiento (ver demo/puente.js)
+                    const ir = () => marcos.sitio.contentWindow.postMessage({ tipo: 'demo-ancla', ancla }, '*');
+                    let listo = false;
+                    try { listo = marcos.sitio.contentDocument?.readyState === 'complete'; } catch { /* aún cargando */ }
+                    listo ? ir() : marcos.sitio.addEventListener('load', ir, { once: true });
+                }
+            }
+
+            for (const p of document.querySelectorAll('.pestana')) p.addEventListener('click', () => mostrar(p.dataset.vista));
+            for (const b of document.querySelectorAll('[data-ir]')) b.addEventListener('click', () => mostrar(b.dataset.ir));
+
+            // ---------- Usuario del CRM ----------
+            const selector = document.getElementById('ver-como');
+            function llenarSelector() {
+                const roles = { admin: 'Administrador', consultor: 'Consultor' };
+                selector.replaceChildren(...backend.usuarios().filter(u => u.activo).map(u => {
+                    const o = document.createElement('option');
+                    o.value = u.id;
+                    o.textContent = u.rol === 'admin' ? `${u.nombre}` : `${u.nombre} (${roles[u.rol]})`;
+                    o.selected = u.id === usuarioId;
+                    return o;
+                }));
+            }
+            selector.addEventListener('change', () => {
+                usuarioId = selector.value;
+                cargar('crm');
+            });
+            llenarSelector();
+
+            document.getElementById('reiniciar').addEventListener('click', () => {
+                backend.reiniciar();
+                usuarioId = 'u-admin';
+                llenarSelector();
+                for (const vista of Object.keys(marcos)) if (cargados[vista]) cargar(vista);
+                aviso('Se restauraron los datos de ejemplo.', 3000);
+            });
+
+            // ---------- Mensajes de las páginas ----------
+            window.addEventListener('message', e => {
+                const msg = e.data;
+                if (!msg || typeof msg !== 'object') return;
+                // Solo se atienden mensajes de las páginas de la propia demostración
+                if (!Object.values(marcos).some(m => m.contentWindow === e.source)) return;
+
+                if (msg.tipo === 'demo-api') {
+                    const r = backend.manejar(msg.method, msg.ruta, msg.body, usuarioId);
+                    e.source.postMessage({ tipo: 'demo-respuesta', id: msg.id, status: r.status, data: r.data }, '*');
+
+                    if (r.evento?.tipo === 'nuevo-contacto') {
+                        const { lead, responsable } = r.evento;
+                        aviso(responsable
+                            ? `Nuevo contacto en el CRM: ${lead.nombre}, asignado a ${responsable.nombre}. En la versión real, el consultor y la administración recibirían un correo de aviso.`
+                            : `Nuevo contacto en el CRM: ${lead.nombre} (sin asignar). En la versión real, la administración recibiría un correo de aviso.`, 9000);
+                        if (cargados.crm) cargar('crm');
+                    }
+                    // Cambios de usuarios en el CRM: actualizar el selector
+                    if (msg.ruta.startsWith('/api/usuarios') && msg.method !== 'GET') llenarSelector();
+                } else if (msg.tipo === 'demo-ir') {
+                    mostrar(msg.vista, msg.ancla);
+                } else if (msg.tipo === 'demo-aviso') {
+                    aviso(msg.texto);
+                } else if (msg.tipo === 'demo-cambiar-usuario') {
+                    selector.focus();
+                    aviso('Elija arriba, en "Ver el CRM como", con qué usuario quiere ver el CRM.', 4000);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
