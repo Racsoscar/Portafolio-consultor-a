@@ -208,6 +208,17 @@ a { color: var(--navy-2); }
     color: var(--gold-dark);
 }
 
+.grupo-servicios {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+.grid-4 + .grupo-servicios { margin-top: 2.5rem; }
 .service-card { display: flex; flex-direction: column; border-top: 3px solid var(--navy); }
 .service-card .lista-check { flex: 1; }
 .link-arrow {
@@ -233,6 +244,9 @@ a { color: var(--navy-2); }
 }
 .destacado p:not(.eyebrow) { color: var(--text-muted); max-width: 640px; }
 .destacado .btn { margin-top: 1.5rem; }
+.niveles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.5rem 2rem; margin-top: 1.5rem; }
+.niveles h3 { font-size: 1rem; }
+.niveles .lista-check { margin-top: 0.6rem; }
 .destacado-icono { font-size: 6rem; color: var(--navy); opacity: 0.12; padding-right: 1rem; }
 
 /* Metodología */

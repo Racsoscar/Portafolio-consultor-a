@@ -7,7 +7,10 @@
         ambiental: 'Ingeniería Ambiental',
         civil: 'Ingeniería Civil',
         mecanica: 'Ingeniería Mecánica',
-        acreditacion: 'Acreditación en Educación Superior',
+        psicologia: 'Psicología',
+        derecho: 'Derecho',
+        diseno_modas: 'Diseño de Modas',
+        acreditacion: 'Educación y Acreditación',
         general: 'Consulta General'
     };
     const ESTADOS = {
@@ -45,16 +48,27 @@
             { id: 'u-sis', nombre: 'Consultor de Sistemas', email: 'sistemas@demo.co', rol: 'consultor', servicios: ['sistemas'] },
             { id: 'u-amb', nombre: 'Consultora Ambiental', email: 'ambiental@demo.co', rol: 'consultor', servicios: ['ambiental'] },
             { id: 'u-civ', nombre: 'Consultor Civil', email: 'civil@demo.co', rol: 'consultor', servicios: ['civil'] },
-            { id: 'u-mec', nombre: 'Consultor de Mecánica y Acreditación', email: 'mecanica@demo.co', rol: 'consultor', servicios: ['mecanica', 'acreditacion'] }
+            { id: 'u-mec', nombre: 'Consultor de Mecánica y Educación', email: 'mecanica@demo.co', rol: 'consultor', servicios: ['mecanica', 'acreditacion'] },
+            { id: 'u-psi', nombre: 'Consultora en Psicología', email: 'psicologia@demo.co', rol: 'consultor', servicios: ['psicologia'] },
+            { id: 'u-der', nombre: 'Consultor Jurídico', email: 'derecho@demo.co', rol: 'consultor', servicios: ['derecho'] },
+            { id: 'u-dis', nombre: 'Consultora en Diseño de Modas', email: 'modas@demo.co', rol: 'consultor', servicios: ['diseno_modas'] }
         ].map(u => ({ ...u, activo: true, creado: haceDias(200).toISOString() }));
 
-        const responsablePorServicio = { sistemas: 'u-sis', ambiental: 'u-amb', civil: 'u-civ', mecanica: 'u-mec', acreditacion: 'u-mec' };
+        const responsablePorServicio = {
+            sistemas: 'u-sis', ambiental: 'u-amb', civil: 'u-civ', mecanica: 'u-mec', acreditacion: 'u-mec',
+            psicologia: 'u-psi', derecho: 'u-der', diseno_modas: 'u-dis'
+        };
 
         // [nombre, servicio, días atrás, estado, seguimiento (días desde hoy o null), mensaje]
         const base = [
             ['María Fernanda López', 'acreditacion', 2, 'nuevo', null, 'Somos una institución universitaria y necesitamos acompañamiento para la renovación de la acreditación de dos programas.'],
             ['Jorge Castaño', 'civil', 3, 'nuevo', null, 'Requerimos interventoría para la construcción de una bodega de 2.000 m².'],
             ['Laura Restrepo', 'general', 4, 'nuevo', null, 'Quisiera conocer los servicios y tarifas de la firma.'],
+            ['Colegio Demo San José', 'acreditacion', 5, 'nuevo', null, 'Somos un colegio de educación media y queremos actualizar nuestro PEI y el plan de mejoramiento institucional.'],
+            ['Tatiana Quintero', 'psicologia', 7, 'contactado', 1, 'Necesitamos aplicar la evaluación de riesgo psicosocial a 80 colaboradores.'],
+            ['Hernán Acosta', 'derecho', 12, 'propuesta', 4, 'Requerimos revisar nuestros contratos con proveedores y la política de datos personales.'],
+            ['Daniela Suárez', 'diseno_modas', 20, 'ganado', null, 'Diseño de uniformes para el personal de atención al cliente de nuestra cadena.'],
+            ['Luis Fernando Mejía', 'psicologia', 48, 'ganado', null, 'Estudio de clima laboral para nuestra sede principal.'],
             ['Andrés Beltrán', 'sistemas', 6, 'contactado', -2, 'Buscamos automatizar la facturación y el inventario de nuestra empresa.'],
             ['Carolina Ruiz', 'ambiental', 9, 'contactado', 0, 'Necesitamos un estudio de impacto ambiental para un proyecto agroindustrial.'],
             ['Felipe Ortega', 'mecanica', 15, 'propuesta', 3, 'Solicitamos una auditoría de eficiencia energética para nuestra planta.'],
