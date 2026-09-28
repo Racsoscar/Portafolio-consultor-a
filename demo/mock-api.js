@@ -101,7 +101,7 @@
             });
             const t0 = new Date(creado).getTime();
             evento(t0, SISTEMA, 'creado', 'Recibido desde el formulario web');
-            if (responsable) evento(t0 + 1000, SISTEMA, 'asignado', `Asignado automáticamente a ${responsable.nombre} (${SERVICIOS[servicio]})`);
+            if (responsable) evento(t0 + 3600000, usuarios[0], 'asignado', `Responsable: Sin asignar → ${responsable.nombre}`);
             if (estado !== 'nuevo' && responsable) {
                 evento(t0 + 86400000, responsable, 'estado', `Estado: Nuevo → ${ESTADOS.contactado}`);
                 notas.push({ id: nuevoId('n'), leadId: lead.id, fecha: new Date(t0 + 86400000).toISOString(),
@@ -142,19 +142,17 @@
             if (telefono.replace(/\D/g, '').length < 7) return error(400, 'Escriba un número de contacto válido (mínimo 7 dígitos).');
             if (body.autorizacion !== 'si') return error(400, 'Para enviar la solicitud debe autorizar el tratamiento de sus datos personales.');
 
-            const candidatos = db.usuarios.filter(u => u.activo && u.servicios.includes(servicio));
-            const responsable = candidatos.length === 1 ? candidatos[0] : null;
+            // Asignación manual: el contacto llega sin responsable
             const ahora = new Date().toISOString();
             const lead = {
                 id: nuevoId('l'), creado: ahora, nombre, email, telefono, servicio, mensaje, estado: 'nuevo',
                 proximoSeguimiento: '', autorizacionDatos: ahora, politicaVersion: '1.0', actualizado: ahora,
-                responsableId: responsable?.id || ''
+                responsableId: ''
             };
             db.leads.push(lead);
             registrar(lead.id, SISTEMA, 'creado', 'Recibido desde el formulario web');
-            if (responsable) registrar(lead.id, SISTEMA, 'asignado', `Asignado automáticamente a ${responsable.nombre} (${SERVICIOS[servicio]})`);
             return { status: 200, data: { success: true, message: 'Gracias por su interés. Un consultor se comunicará con usted pronto.' },
-                evento: { tipo: 'nuevo-contacto', lead, responsable } };
+                evento: { tipo: 'nuevo-contacto', lead } };
         }
 
         function api(method, ruta, body, usuario) {
@@ -168,7 +166,7 @@
                 return ok({
                     servicios: SERVICIOS, estados: ESTADOS, roles: ROLES, usuario: publico(usuario),
                     equipo: db.usuarios.map(u => ({ id: u.id, nombre: u.nombre, rol: u.rol, activo: u.activo, servicios: u.servicios })),
-                    almacenamiento: 'Demostración (datos ficticios en memoria)', avisosActivos: true
+                    almacenamiento: 'Demostración (datos ficticios en memoria)', avisosActivos: true, asignacionAutomatica: false
                 });
             }
             if (method === 'GET' && ruta === '/api/leads') {
@@ -217,12 +215,14 @@
                         if (usuario.rol !== 'admin' && !toma) return error(403, 'Solo un administrador puede reasignar contactos.');
                         registros.push(['asignado', `Responsable: ${nombreDe(lead.responsableId)} → ${nombreDe(responsableId)}`, () => { lead.responsableId = responsableId; }]);
                     }
+                    const asignadoA = responsableId && responsableId !== lead.responsableId && responsableId !== usuario.id
+                        ? db.usuarios.find(u => u.id === responsableId) : null;
                     for (const [accion, detalle, aplicar] of registros) {
                         aplicar();
                         registrar(lead.id, usuario, accion, detalle);
                     }
                     if (registros.length) lead.actualizado = new Date().toISOString();
-                    return ok({ ...lead });
+                    return { ...ok({ ...lead }), evento: asignadoA ? { tipo: 'asignado', lead, responsable: asignadoA } : null };
                 }
             }
             if (ruta === '/api/cuenta/password' && method === 'POST') {

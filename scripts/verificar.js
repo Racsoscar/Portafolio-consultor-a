@@ -2,7 +2,7 @@
 // Uso: npm run verificar
 const fs = require('fs');
 const { createStore } = require('../lib/store');
-const { verificarCorreo } = require('../lib/notify');
+const { verificarCorreo, RECEPTORES } = require('../lib/notify');
 const { camposPendientes } = require('../lib/corporacion');
 
 let errores = 0;
@@ -58,10 +58,15 @@ const error = texto => { errores++; console.log(`  ERROR  ${texto}`); };
         }
     }
 
+    console.log('\nAsignación de contactos');
+    ok(process.env.ASIGNACION_AUTOMATICA === 'si'
+        ? 'Automática por servicio (ASIGNACION_AUTOMATICA=si)'
+        : 'Manual: los contactos nuevos llegan sin asignar');
+
     console.log('\nAviso por correo');
     try {
         (await verificarCorreo())
-            ? ok(`SMTP conectado; los avisos llegarán a ${process.env.NOTIFY_EMAIL}`)
+            ? ok(`SMTP conectado; los avisos llegarán a ${RECEPTORES.join(', ')}`)
             : aviso('Correo no configurado (SMTP_HOST / NOTIFY_EMAIL): no se enviarán avisos');
     } catch (e) {
         error(`SMTP rechazó la conexión: ${e.message}`);

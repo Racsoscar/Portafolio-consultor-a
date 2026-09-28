@@ -4,7 +4,7 @@ const { SERVICIOS, ESTADOS } = require('./lib/constants');
 const { createStore } = require('./lib/store');
 const auth = require('./lib/auth');
 const usuarios = require('./lib/usuarios');
-const { avisarNuevoLead, avisosActivos } = require('./lib/notify');
+const { avisarNuevoLead, avisarAsignacion, avisosActivos } = require('./lib/notify');
 const { datosCorporacion, servirPlantillas, logoSvg } = require('./lib/corporacion');
 
 const app = express();
@@ -16,6 +16,9 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const TELEFONO_REGEX = /^[0-9+()\s-]{7,20}$/;
 const SISTEMA = { id: '', nombre: 'Sistema' };
+// Asignación automática por servicio: apagada salvo ASIGNACION_AUTOMATICA=si en .env.
+// Apagada, los contactos llegan sin asignar y el administrador los asigna a mano.
+const ASIGNACION_AUTOMATICA = process.env.ASIGNACION_AUTOMATICA === 'si';
 
 // Envuelve rutas async para que los errores lleguen al manejador de errores
 const asyncRoute = fn => (req, res, next) => fn(req, res, next).catch(next);
@@ -70,7 +73,7 @@ app.post('/contact', asyncRoute(async (req, res) => {
     let lead;
     let responsable = null;
     try {
-        responsable = await usuarios.responsablePorServicio(servicio);
+        if (ASIGNACION_AUTOMATICA) responsable = await usuarios.responsablePorServicio(servicio);
         lead = await store.add('Leads', {
             creado: ahora,
             nombre,
@@ -139,7 +142,8 @@ api.get('/meta', asyncRoute(async (req, res) => {
         usuario: usuarios.publico(req.usuario),
         equipo,
         almacenamiento: store.name,
-        avisosActivos
+        avisosActivos,
+        asignacionAutomatica: ASIGNACION_AUTOMATICA
     });
 }));
 
@@ -210,6 +214,12 @@ api.patch('/leads/:id', asyncRoute(async (req, res) => {
     const actualizado = await store.update('Leads', lead.id, cambios);
     if (!actualizado) return res.status(404).json({ message: 'Contacto no encontrado.' });
     for (const [accion, detalle] of registros) await registrar(lead.id, req.usuario, accion, detalle);
+
+    // Avisar al consultor cuando otra persona le asigna el contacto
+    if (cambios.responsableId && cambios.responsableId !== req.usuario.id) {
+        const nuevo = equipo.find(u => u.id === cambios.responsableId);
+        avisarAsignacion(actualizado, SERVICIOS[actualizado.servicio] || actualizado.servicio, nuevo, req.usuario);
+    }
     res.json(actualizado);
 }));
 

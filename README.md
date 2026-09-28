@@ -38,7 +38,7 @@ Cada persona entra con su correo y su contraseña. Los usuarios se guardan en la
 - **Administrador:** ve todos los contactos, los asigna o reasigna, los elimina y gestiona los usuarios (pestaña *Usuarios* del CRM).
 - **Consultor:** ve solo los contactos asignados a él y los que están sin asignar; puede asignarse un contacto sin responsable, cambiar su estado y seguimiento, y agregar notas.
 
-Cada usuario indica qué servicios atiende. Si un servicio lo atiende **un solo** usuario activo, los contactos nuevos de ese servicio se le asignan automáticamente y el correo de aviso le llega también a él.
+**Asignación de contactos.** Por defecto es **manual**: los contactos nuevos llegan sin asignar y el administrador elige el responsable en la ficha. El consultor asignado recibe un correo de aviso. Con `ASIGNACION_AUTOMATICA=si` en `.env`, un contacto nuevo se asigna solo al único consultor activo que atiende ese servicio (según los servicios de cada usuario), y el aviso de contacto nuevo le llega también a él.
 
 Todo cambio de estado, seguimiento o responsable queda en la pestaña **Historial** con quién lo hizo y cuándo, y se ve en la sección *Actividad* de la ficha. Las notas guardan su autor.
 

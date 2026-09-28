@@ -575,7 +575,9 @@ function abrirUsuario(usuario = null) {
         campo('u-rol', 'Rol', rol),
         h('fieldset', { class: 'servicios-usuario' },
             h('legend', {}, 'Servicios que atiende'),
-            h('p', { class: 'ayuda' }, 'Si un servicio lo atiende un solo usuario activo, los contactos nuevos de ese servicio se le asignan automáticamente.'),
+            h('p', { class: 'ayuda' }, meta.asignacionAutomatica
+                ? 'Si un servicio lo atiende un solo usuario activo, los contactos nuevos de ese servicio se le asignan automáticamente.'
+                : 'Sirve de referencia al asignar contactos. La asignación es manual: el administrador elige el responsable en la ficha de cada contacto.'),
             servicios),
         !nuevo && h('label', { class: 'check' }, activo, ' Usuario activo (puede iniciar sesión)'),
         campo('u-password', nuevo ? 'Contraseña temporal' : 'Nueva contraseña (opcional)',

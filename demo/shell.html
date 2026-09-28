@@ -132,7 +132,7 @@
                 <ol class="flujo">
                     <li><strong>Solicitud</strong>Un interesado llena el formulario de la página web y autoriza el tratamiento de sus datos.</li>
                     <li><strong>Registro</strong>La solicitud se guarda en la base de datos de la corporación (una hoja de Google Sheets propia).</li>
-                    <li><strong>Asignación y aviso</strong>Se asigna al consultor del área y se le envía un aviso por correo.</li>
+                    <li><strong>Aviso y asignación</strong>La administración recibe un aviso por correo y asigna el caso a un consultor, quien también es avisado.</li>
                     <li><strong>Seguimiento</strong>El consultor gestiona el caso en el CRM: estado, próximas acciones y notas.</li>
                     <li><strong>Resultados</strong>La dirección ve en el tablero cuántas solicitudes llegan y cuántas se convierten en clientes.</li>
                 </ol>
@@ -141,7 +141,7 @@
                 <ol class="recorrido">
                     <li>Abra la <button class="ir" data-ir="sitio">Página web</button> y recorra sus secciones: Nosotros, Servicios, Acreditación, Metodología y Equipo.</li>
                     <li>En la sección <em>Contacto</em>, llene el formulario con datos inventados. Intente enviarlo sin marcar la autorización de datos: el sistema no lo permite.</li>
-                    <li>Vaya al <button class="ir" data-ir="crm">CRM</button>. En el <em>Tablero</em> verá las cifras y en <em>Contactos</em> aparecerá su solicitud, ya asignada al consultor del servicio que eligió.</li>
+                    <li>Vaya al <button class="ir" data-ir="crm">CRM</button>. En el <em>Tablero</em> verá las cifras y en <em>Contactos</em> aparecerá su solicitud, sin asignar. Ábrala y, en <em>Responsable</em>, asígnela a un consultor.</li>
                     <li>Abra un contacto: cambie su estado, programe un seguimiento y agregue una nota. Al final de la ficha, la sección <em>Actividad</em> muestra quién hizo cada cambio.</li>
                     <li>Arriba, en <em>Ver el CRM como</em>, elija un consultor: verá solo sus casos y los que están sin asignar. Como administrador, en la pestaña <em>Usuarios</em> puede crear usuarios y definir qué servicios atiende cada uno.</li>
                 </ol>
@@ -155,7 +155,7 @@
                         <tr><td>Sitio web corporativo</td><td class="listo">✓ Listo</td><td>Diseño, secciones y formulario de contacto. Se adapta a celulares.</td></tr>
                         <tr><td>Protección de datos (Ley 1581 de 2012)</td><td class="listo">✓ Listo</td><td>Política de tratamiento de datos, autorización obligatoria y registro de la fecha de cada autorización.</td></tr>
                         <tr><td>CRM de clientes</td><td class="listo">✓ Listo</td><td>Tablero con indicadores, gestión de contactos, notas, seguimientos e historial de cambios.</td></tr>
-                        <tr><td>Usuarios y roles</td><td class="listo">✓ Listo</td><td>Administradores y consultores con permisos distintos; asignación automática por servicio.</td></tr>
+                        <tr><td>Usuarios y roles</td><td class="listo">✓ Listo</td><td>Administradores y consultores con permisos distintos; la administración asigna cada caso a un consultor.</td></tr>
                         <tr><td>Base de datos y avisos por correo</td><td class="listo">✓ Conectado</td><td>Google Sheets y correo de avisos funcionando en el entorno de pruebas.</td></tr>
                         <tr><td>Datos de la corporación</td><td class="pendiente">Pendiente</td><td>Nombre definitivo, logo, razón social, NIT, dirección, teléfono y correos. Hoy se muestran como "por definir".</td></tr>
                         <tr><td>Contenido del equipo</td><td class="pendiente">Pendiente</td><td>Perfiles, cargos, enlaces de LinkedIn y fotos de cada consultor.</td></tr>
@@ -268,11 +268,10 @@
                     e.source.postMessage({ tipo: 'demo-respuesta', id: msg.id, status: r.status, data: r.data }, '*');
 
                     if (r.evento?.tipo === 'nuevo-contacto') {
-                        const { lead, responsable } = r.evento;
-                        aviso(responsable
-                            ? `Nuevo contacto en el CRM: ${lead.nombre}, asignado a ${responsable.nombre}. En la versión real, el consultor y la administración recibirían un correo de aviso.`
-                            : `Nuevo contacto en el CRM: ${lead.nombre} (sin asignar). En la versión real, la administración recibiría un correo de aviso.`, 9000);
+                        aviso(`Nuevo contacto en el CRM: ${r.evento.lead.nombre} (sin asignar). En la versión real, la administración recibiría un correo de aviso y asignaría el caso a un consultor.`, 9000);
                         if (cargados.crm) cargar('crm');
+                    } else if (r.evento?.tipo === 'asignado') {
+                        aviso(`${r.evento.lead.nombre} quedó asignado a ${r.evento.responsable.nombre}. En la versión real, el consultor recibiría un correo de aviso.`, 7000);
                     }
                     // Cambios de usuarios en el CRM: actualizar el selector
                     if (msg.ruta.startsWith('/api/usuarios') && msg.method !== 'GET') llenarSelector();
