@@ -69,5 +69,28 @@ Vuelva a generarlo después de cambiar el sitio, el CRM o `config/corporacion.js
 `npm run verificar` revisa la contraseña del CRM, la conexión con Google Sheets (y crea las pestañas si faltan) y el acceso al servidor de correo, sin enviar nada.
 
 ## Publicar en producción
-- Usa HTTPS y define `NODE_ENV=production`, para que la cookie de sesión sea segura y se exija Google Sheets.
-- Define `SESSION_SECRET` con un texto aleatorio largo y `PUBLIC_URL` con la dirección del sitio.
+Funciona en Render, Railway o un VPS con Nginx. Requiere Node.js 22.9 o superior y `npm start` como comando de arranque.
+
+### Variables obligatorias
+- `NODE_ENV=production`: cookie de sesión segura, redirección a HTTPS y Google Sheets obligatorio.
+- `SESSION_SECRET`: texto aleatorio de **32 caracteres o más**. Sin él el servidor no arranca. Genera uno con `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
+- `GOOGLE_SHEET_ID` y las credenciales de Google (ver abajo).
+- `ADMIN_EMAIL`, `ADMIN_NOMBRE` y `ADMIN_PASSWORD` para crear el primer administrador. Después del primer arranque **borra `ADMIN_PASSWORD`** de las variables.
+- Recomendadas: `PUBLIC_URL` con la dirección del sitio y las variables SMTP para los avisos.
+
+### Credenciales de Google por variable
+En hostings sin archivos, pega el contenido del JSON de la cuenta de servicio en `GOOGLE_CREDENTIALS_JSON`, tal cual o en base64 (`base64 -w0 credenciales.json`). Si existe, tiene prioridad sobre `GOOGLE_APPLICATION_CREDENTIALS` (ruta a un archivo, útil en un VPS).
+
+### Sitio privado
+Con `SITIO_PRIVADO=si` todo el sitio queda cerrado: quien no haya iniciado sesión es llevado a `/admin/login` (y vuelve a la página que pedía tras entrar), y el formulario de contacto responde 401. Solo entra quien tenga cuenta en el CRM. Además se envía `X-Robots-Tag: noindex, nofollow` y `/robots.txt` prohíbe todo el sitio.
+
+Para abrir el sitio al público, cambia `SITIO_PRIVADO` a cualquier otro valor (por ejemplo `no`) y reinicia el servidor. Abierto, `robots.txt` solo excluye `/admin` y `/api`.
+
+### Límite de intentos de login
+Tras 5 intentos fallidos desde una misma IP, o 20 fallidos con un mismo correo, el login se bloquea 15 minutos. El límite por correo es más alto a propósito, pero implica un riesgo: alguien que conozca el correo de un administrador puede bloquearle el acceso con 20 intentos fallidos. El bloqueo se levanta esperando 15 minutos o reiniciando el servidor (los contadores viven en memoria, con un tope de 10.000 entradas por tipo).
+
+### Proxy, HTTPS y health check
+- En producción se redirige a HTTPS (308, al host de `PUBLIC_URL` si está definida) y se confía en 1 proxy. Si el proxy ya fuerza HTTPS o no envía `X-Forwarded-Proto`, define `FORZAR_HTTPS=no` para evitar un bucle de redirecciones. `TRUST_PROXY=false` detrás de un proxy causa el mismo bucle, porque el servidor nunca ve la conexión como segura. Si hay otra cantidad de proxies, ajusta `TRUST_PROXY` (número, `true`/`false` o texto). Con Nginx, envía `X-Forwarded-For` y `X-Forwarded-Proto`.
+- `GET /healthz` responde `200 {"ok":true}` sin sesión y sin redirección: úsalo como ruta del health check en Render/Railway.
+- El servidor se cierra ordenadamente con SIGTERM/SIGINT.
+- Ejecuta `npm run verificar` con las mismas variables para comprobar la configuración.

@@ -4,6 +4,7 @@ const fs = require('fs');
 const { createStore } = require('../lib/store');
 const { verificarCorreo, RECEPTORES } = require('../lib/notify');
 const { camposPendientes } = require('../lib/corporacion');
+const { credencialesDesdeVariable } = require('../lib/store/credenciales');
 
 let errores = 0;
 const ok = texto => console.log(`  OK     ${texto}`);
@@ -12,7 +13,12 @@ const error = texto => { errores++; console.log(`  ERROR  ${texto}`); };
 
 (async () => {
     console.log('\nAcceso al CRM');
-    process.env.SESSION_SECRET ? ok('SESSION_SECRET configurada') : aviso('Falta SESSION_SECRET: las sesiones se cerrarán al reiniciar');
+    const enProduccion = process.env.NODE_ENV === 'production';
+    const secreto = process.env.SESSION_SECRET || '';
+    if (secreto.length >= 32) ok('SESSION_SECRET configurada');
+    else if (enProduccion) error('SESSION_SECRET falta o tiene menos de 32 caracteres (obligatoria en producción)');
+    else aviso(secreto ? 'SESSION_SECRET tiene menos de 32 caracteres' : 'Falta SESSION_SECRET: las sesiones se cerrarán al reiniciar');
+    console.log(`  ${process.env.SITIO_PRIVADO === 'si' ? 'OK     Sitio privado (SITIO_PRIVADO=si): solo entra quien tenga cuenta del CRM' : 'AVISO  Sitio abierto al público (SITIO_PRIVADO distinto de "si")'}`);
 
     console.log('\nDatos de la corporación (config/corporacion.json)');
     const pendientes = camposPendientes();
@@ -22,12 +28,21 @@ const error = texto => { errores++; console.log(`  ERROR  ${texto}`); };
 
     console.log('\nAlmacenamiento');
     const { GOOGLE_SHEET_ID, GOOGLE_APPLICATION_CREDENTIALS } = process.env;
-    if (GOOGLE_SHEET_ID && !fs.existsSync(GOOGLE_APPLICATION_CREDENTIALS || '')) {
-        error(`No existe el archivo de credenciales: ${GOOGLE_APPLICATION_CREDENTIALS || '(GOOGLE_APPLICATION_CREDENTIALS vacío)'}`);
+    let credencialesVar = null;
+    let errorCredenciales = null;
+    try {
+        credencialesVar = credencialesDesdeVariable();
+    } catch (e) {
+        errorCredenciales = e.message;
+    }
+    if (errorCredenciales) {
+        error(errorCredenciales);
+    } else if (GOOGLE_SHEET_ID && !credencialesVar && !fs.existsSync(GOOGLE_APPLICATION_CREDENTIALS || '')) {
+        error(`Faltan las credenciales de Google: define GOOGLE_CREDENTIALS_JSON o un GOOGLE_APPLICATION_CREDENTIALS que exista (${GOOGLE_APPLICATION_CREDENTIALS || 'vacío'})`);
     } else {
         if (GOOGLE_SHEET_ID) {
-            const { client_email } = JSON.parse(fs.readFileSync(GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
-            ok(`Cuenta de servicio: ${client_email}`);
+            const { client_email } = credencialesVar || JSON.parse(fs.readFileSync(GOOGLE_APPLICATION_CREDENTIALS, 'utf8'));
+            ok(`Cuenta de servicio: ${client_email}${credencialesVar ? ' (desde GOOGLE_CREDENTIALS_JSON)' : ''}`);
         }
         try {
             const store = createStore();

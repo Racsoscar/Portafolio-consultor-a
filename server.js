@@ -10,6 +10,14 @@ const { datosCorporacion, servirPlantillas, logoSvg } = require('./lib/corporaci
 const app = express();
 const PORT = process.env.PORT || 3000;
 const EN_PRODUCCION = process.env.NODE_ENV === 'production';
+
+// En producción la firma de la sesión necesita un secreto fijo y largo: sin él,
+// las sesiones se romperían al reiniciar o serían fáciles de adivinar.
+if (EN_PRODUCCION && (process.env.SESSION_SECRET || '').length < 32) {
+    console.error('Error de configuración: en producción SESSION_SECRET es obligatoria y debe tener al menos 32 caracteres.');
+    console.error('Genere una con: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"');
+    process.exit(1);
+}
 const store = createStore();
 usuarios.configurarUsuarios(store);
 
@@ -18,7 +26,18 @@ usuarios.configurarUsuarios(store);
 // por intentos de login dejaría de distinguir atacantes y un solo atacante
 // podría bloquear el acceso de todos. Con 'trust proxy' se usa la IP real
 // (cabecera X-Forwarded-For) y req.secure refleja si la conexión es HTTPS.
-if (EN_PRODUCCION) app.set('trust proxy', 1);
+// TRUST_PROXY lo ajusta: número de proxies (1), true/false, o texto (p. ej. 'loopback').
+function valorTrustProxy() {
+    const valor = process.env.TRUST_PROXY;
+    if (valor === undefined || valor.trim() === '') return EN_PRODUCCION ? 1 : undefined;
+    const texto = valor.trim();
+    if (/^\d+$/.test(texto)) return Number(texto);
+    if (texto === 'true') return true;
+    if (texto === 'false') return false;
+    return texto;
+}
+const trustProxy = valorTrustProxy();
+if (trustProxy !== undefined) app.set('trust proxy', trustProxy);
 app.disable('x-powered-by');
 
 // ---------- Cabeceras de seguridad (en toda respuesta) ----------
@@ -43,13 +62,39 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');                  // respaldo de frame-ancestors en navegadores viejos
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    // El CRM y la API nunca deben salir en buscadores
-    if (req.path.startsWith('/admin') || req.path.startsWith('/api')) {
+    // El CRM y la API nunca deben salir en buscadores; con sitio privado, nada
+    if (auth.SITIO_PRIVADO || req.path.startsWith('/admin') || req.path.startsWith('/api')) {
         res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     }
     // HSTS: en producción (HTTPS) el navegador exige HTTPS durante un año
     if (EN_PRODUCCION) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     next();
+});
+
+// Health check para Render/Railway/Nginx: sin sesión y sin redirección a HTTPS
+app.get('/healthz', (req, res) => res.json({ ok: true }));
+
+// En producción, todo el tráfico va por HTTPS (req.secure depende de 'trust proxy').
+// FORZAR_HTTPS=no la desactiva (si el proxy ya fuerza HTTPS o no envía X-Forwarded-Proto,
+// dejarla activa provocaría un bucle de redirecciones).
+const FORZAR_HTTPS = process.env.FORZAR_HTTPS ? process.env.FORZAR_HTTPS !== 'no' : EN_PRODUCCION;
+function hostPublico(req) {
+    try {
+        if (process.env.PUBLIC_URL) return new URL(process.env.PUBLIC_URL).host;
+    } catch { /* PUBLIC_URL no válida: se usa la cabecera Host */ }
+    return req.get('host');
+}
+if (FORZAR_HTTPS) {
+    app.use((req, res, next) => {
+        if (req.secure) return next();
+        res.redirect(308, `https://${hostPublico(req)}${req.url}`);
+    });
+}
+
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain').send(auth.SITIO_PRIVADO
+        ? 'User-agent: *\nDisallow: /\n'
+        : 'User-agent: *\nDisallow: /admin\nDisallow: /api\n');
 });
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,6 +127,9 @@ const puedeVer = (usuario, lead) =>
 // Middleware: solo se publica la carpeta public/, nunca el código del servidor ni .env
 app.use(express.urlencoded({ extended: false, limit: '20kb' }));
 app.use(express.json({ limit: '20kb' }));
+
+// Sitio privado: sin sesión del CRM no se entrega nada (ver SITIO_PRIVADO en .env.example)
+app.use(auth.requireSitioPrivado);
 
 // Las páginas HTML se sirven con los datos de config/corporacion.json ya reemplazados
 const publicDir = path.join(__dirname, 'public');
@@ -191,7 +239,7 @@ const paginaAdmin = archivo => (req, res, next) => {
 };
 
 app.get('/admin/login', asyncRoute(async (req, res, next) => {
-    if (await auth.usuarioDeSesion(req)) return res.redirect('/admin');
+    if (await auth.usuarioDeSesion(req)) return res.redirect(auth.rutaSegura(req.query.next) || '/admin');
     paginaAdmin('login.html')(req, res, next);
 }));
 app.post('/admin/login', auth.login);
@@ -420,6 +468,11 @@ app.use('/api', api);
 
 // Manejador de errores
 app.use((error, req, res, next) => {
+    const status = error.status || error.statusCode;
+    if (status >= 400 && status < 500) {
+        const mensajes = { 400: 'Solicitud no válida.', 413: 'La solicitud es demasiado grande.' };
+        return res.status(status).json({ success: false, message: mensajes[status] || 'No se pudo procesar la solicitud.' });
+    }
     console.error(error);
     res.status(500).json({ message: 'Error interno del servidor.' });
 });
@@ -429,11 +482,21 @@ app.use((error, req, res, next) => {
 store.init()
     .then(() => usuarios.crearAdministradorInicial())
     .then(() => {
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`Servidor corriendo en http://localhost:${PORT}`);
             console.log(`CRM en http://localhost:${PORT}/admin — datos en ${store.name}`);
+            if (auth.SITIO_PRIVADO) console.log('Sitio privado: solo entra quien tenga cuenta en el CRM.');
             if (!avisosActivos) console.warn('Aviso: correo no configurado (SMTP_HOST / NOTIFY_EMAIL); no se enviarán avisos.');
         });
+
+        // Cierre ordenado: deja de aceptar conexiones y termina las que están en curso
+        const cerrar = senal => {
+            console.log(`${senal} recibida: cerrando el servidor…`);
+            server.close(() => process.exit(0));
+            setTimeout(() => process.exit(0), 10000).unref();
+        };
+        process.on('SIGTERM', () => cerrar('SIGTERM'));
+        process.on('SIGINT', () => cerrar('SIGINT'));
     })
     .catch(error => {
         console.error('No se pudo iniciar el almacenamiento:', error.message);

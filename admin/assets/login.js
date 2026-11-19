@@ -8,10 +8,13 @@ document.getElementById('login-form').addEventListener('submit', async function 
         const res = await fetch('/admin/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: this.email.value, password: this.password.value })
+            body: JSON.stringify({ email: this.email.value, password: this.password.value,
+                next: new URLSearchParams(location.search).get('next') || '' })
         });
         if (res.ok) {
-            location.href = '/admin' + location.hash;
+            // La ruta de destino la valida el servidor (nunca se usa `next` directamente)
+            const data = await res.json().catch(() => ({}));
+            location.href = (typeof data.next === 'string' ? data.next : '/admin') + location.hash;
             return;
         }
         const data = await res.json().catch(() => ({}));
