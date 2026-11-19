@@ -22,9 +22,9 @@ const error = texto => { errores++; console.log(`  ERROR  ${texto}`); };
 
     console.log('\nDatos de la corporación (config/corporacion.json)');
     const pendientes = camposPendientes();
-    pendientes.length
-        ? aviso(`Campos por definir: ${pendientes.join(', ')}`)
-        : ok('Todos los datos están completos');
+    if (!pendientes.length) ok('Todos los datos están completos');
+    else if (enProduccion && process.env.SITIO_PRIVADO !== 'si') error(`Campos por definir: ${pendientes.join(', ')}. En producción el sitio no puede abrirse al público hasta completarlos (Ley 1581 de 2012)`);
+    else aviso(`Campos por definir: ${pendientes.join(', ')}. Complételos antes de abrir el sitio al público`);
 
     console.log('\nAlmacenamiento');
     const { GOOGLE_SHEET_ID, GOOGLE_APPLICATION_CREDENTIALS } = process.env;

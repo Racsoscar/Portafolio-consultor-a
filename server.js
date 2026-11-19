@@ -5,7 +5,7 @@ const { createStore } = require('./lib/store');
 const auth = require('./lib/auth');
 const usuarios = require('./lib/usuarios');
 const { avisarNuevoLead, avisarAsignacion, avisosActivos } = require('./lib/notify');
-const { datosCorporacion, servirPlantillas, logoSvg } = require('./lib/corporacion');
+const { datosCorporacion, camposPendientes, servirPlantillas, logoSvg } = require('./lib/corporacion');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +17,17 @@ if (EN_PRODUCCION && (process.env.SESSION_SECRET || '').length < 32) {
     console.error('Error de configuración: en producción SESSION_SECRET es obligatoria y debe tener al menos 32 caracteres.');
     console.error('Genere una con: node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"');
     process.exit(1);
+}
+// Ley 1581 de 2012: el sitio no puede abrirse al público mientras la Política de
+// Tratamiento de Datos no identifique al responsable. En producción, con el sitio
+// abierto (SITIO_PRIVADO distinto de 'si'), no se arranca si quedan campos "por definir".
+if (EN_PRODUCCION && !auth.SITIO_PRIVADO) {
+    const pendientes = camposPendientes();
+    if (pendientes.length) {
+        console.error('Error de configuración: el sitio no puede abrirse al público mientras haya datos de la corporación por definir (Ley 1581 de 2012).');
+        console.error(`Complete en config/corporacion.json: ${pendientes.join(', ')}. Mientras tanto, mantenga SITIO_PRIVADO=si.`);
+        process.exit(1);
+    }
 }
 const store = createStore();
 usuarios.configurarUsuarios(store);

@@ -86,6 +86,8 @@ Con `SITIO_PRIVADO=si` todo el sitio queda cerrado: quien no haya iniciado sesi�
 
 Para abrir el sitio al público, cambia `SITIO_PRIVADO` a cualquier otro valor (por ejemplo `no`) y reinicia el servidor. Abierto, `robots.txt` solo excluye `/admin` y `/api`.
 
+**Seguro de la Ley 1581:** en producción, el servidor no arranca con el sitio abierto mientras `config/corporacion.json` tenga campos "por definir" (razón social, NIT, dirección, correos…), porque la Política de Tratamiento de Datos debe identificar al responsable. El error indica qué campos faltan. Con `SITIO_PRIVADO=si` el servidor arranca normalmente, y `npm run verificar` señala los campos pendientes.
+
 ### Límite de intentos de login
 Tras 5 intentos fallidos desde una misma IP, o 20 fallidos con un mismo correo, el login se bloquea 15 minutos. El límite por correo es más alto a propósito, pero implica un riesgo: alguien que conozca el correo de un administrador puede bloquearle el acceso con 20 intentos fallidos. El bloqueo se levanta esperando 15 minutos o reiniciando el servidor (los contadores viven en memoria, con un tope de 10.000 entradas por tipo).
 
