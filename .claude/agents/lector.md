@@ -1,6 +1,6 @@
 ---
-name: lector-proyecto
-description: Lee y explora el proyecto sin modificarlo. Úsalo para responder dónde está algo, cómo funciona una parte del código, qué archivos afecta un cambio, o para dar contexto antes de que escritor-codigo implemente.
+name: lector
+description: Lee y explora el proyecto sin modificarlo. Úsalo para responder dónde está algo, cómo funciona una parte del código, qué archivos afecta un cambio, o para dar contexto antes de que programador implemente.
 model: haiku
 tools: Read, Glob, Grep
 ---

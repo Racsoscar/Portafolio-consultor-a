@@ -1,5 +1,5 @@
 ---
-name: escritor-codigo
+name: programador
 description: Escribe y modifica código del proyecto (servidor Express en server.js, lib/, admin/, public/, scripts/). Úsalo cuando haya que implementar una funcionalidad, corregir un error o refactorizar.
 model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash
