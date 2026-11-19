@@ -413,3 +413,13 @@ a { color: var(--navy-2); }
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
 }
+
+/* Honeypot anti-spam: campo oculto que las personas no ven ni enfocan,
+   pero que los bots suelen rellenar. Oculto sin display:none para que los bots lo vean. */
+.hp {
+    position: absolute;
+    left: -5000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}

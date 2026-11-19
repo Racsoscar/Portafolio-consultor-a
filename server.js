@@ -9,8 +9,48 @@ const { datosCorporacion, servirPlantillas, logoSvg } = require('./lib/corporaci
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const EN_PRODUCCION = process.env.NODE_ENV === 'production';
 const store = createStore();
 usuarios.configurarUsuarios(store);
+
+// En producción el servidor va detrás de un proxy (Render, Railway, Nginx…).
+// Sin esto, req.ip sería la IP del proxy para TODOS los visitantes: el bloqueo
+// por intentos de login dejaría de distinguir atacantes y un solo atacante
+// podría bloquear el acceso de todos. Con 'trust proxy' se usa la IP real
+// (cabecera X-Forwarded-For) y req.secure refleja si la conexión es HTTPS.
+if (EN_PRODUCCION) app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
+// ---------- Cabeceras de seguridad (en toda respuesta) ----------
+// Content-Security-Policy: el navegador solo carga recursos de los orígenes
+// permitidos. Es la red de seguridad ante un XSS y bloquea scripts ajenos.
+const CSP = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+    "img-src 'self' data: https://images.unsplash.com",
+    "connect-src 'self'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",   // nadie puede incrustar el sitio en un iframe (anti-clickjacking)
+    "object-src 'none'"
+].join('; ');
+
+app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', CSP);
+    res.setHeader('X-Content-Type-Options', 'nosniff');        // no adivinar el tipo de archivo
+    res.setHeader('X-Frame-Options', 'DENY');                  // respaldo de frame-ancestors en navegadores viejos
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    // El CRM y la API nunca deben salir en buscadores
+    if (req.path.startsWith('/admin') || req.path.startsWith('/api')) {
+        res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
+    // HSTS: en producción (HTTPS) el navegador exige HTTPS durante un año
+    if (EN_PRODUCCION) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+});
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -51,7 +91,39 @@ app.use(express.static(publicDir));
 
 // ---------- Formulario de contacto de la página ----------
 
+// Límite de envíos del formulario por IP: evita que un bot inunde de contactos
+// falsos, agote la cuota de Google Sheets o dispare correos sin parar.
+const CONTACTO_MAX = 5;                 // envíos permitidos…
+const CONTACTO_VENTANA_MS = 10 * 60 * 1000;  // …cada 10 minutos
+const enviosContacto = new Map();
+
+function excedeLimiteContacto(ip) {
+    const ahora = Date.now();
+    const registro = enviosContacto.get(ip);
+    if (!registro || ahora - registro.desde > CONTACTO_VENTANA_MS) {
+        enviosContacto.set(ip, { count: 1, desde: ahora });
+        return false;
+    }
+    registro.count += 1;
+    return registro.count > CONTACTO_MAX;
+}
+
+// Limpieza periódica para que el Map no crezca sin límite
+setInterval(() => {
+    const ahora = Date.now();
+    for (const [ip, r] of enviosContacto) if (ahora - r.desde > CONTACTO_VENTANA_MS) enviosContacto.delete(ip);
+}, CONTACTO_VENTANA_MS).unref();
+
 app.post('/contact', asyncRoute(async (req, res) => {
+    // Honeypot: un campo oculto que una persona nunca llena pero un bot sí.
+    // Si viene con texto, fingimos éxito y no guardamos nada.
+    if (String(req.body.website || '').trim() !== '') {
+        return res.json({ success: true, message: 'Gracias por su interés. Un consultor se comunicará con usted pronto.' });
+    }
+    if (excedeLimiteContacto(req.ip)) {
+        return res.status(429).json({ success: false, message: 'Recibimos varias solicitudes suyas. Espere unos minutos e intente de nuevo.' });
+    }
+
     const nombre = String(req.body.name || '').trim();
     const email = String(req.body.email || '').trim();
     const telefono = String(req.body.phone || '').trim().replace(/\s+/g, ' ');
